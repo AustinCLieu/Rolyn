@@ -17,3 +17,43 @@ export async function signInWithEmail(email, password) { // takes email and pass
     // Supabase verifies the password against its stored hash and returns a JWT if it matches. Return await returns a { data, error } object, so when we call this function, we can use error to check if it worked 
     return await supabase.auth.signInWithPassword({ email, password });
 }
+
+// creates a new user. Supabase will hash the password, insert a row into the auth.users table, and will log them in or immediately send a confirmation email (default is email)
+export async function signUp(email, password) {
+    return await supabase.auth.signUp({ email, password });
+}
+
+// Cleares the JWT from localStorage and tells Supabase to invalidate the session. This means the user is no longer logged in and protected routes to the backend shouldn't work anymore, such as making a post
+export async function signOut() {
+    return await supabase.auth.signOut();
+}
+
+// this function returns the current session info if the user is logged in, and null if not. It's useful for "am I logged in rn?"
+// It also returns the JWT itself which is useful when calling backend. The returned shape looks like
+/*
+{
+    data: {
+        session: {
+            access_token: 'eyJ...',
+            r3efresh_token: '...',
+            expires_at: 1735689600
+            user: { 
+                id: 'abc-123-...', 
+                email: 'beastcs146j@gmail.com'
+                user_metadata: { full_name: 'Austin' },
+                //
+            },
+        }
+    },
+    error: null
+}
+So to grab the JWT specifically, we use (await getSession()).data.session.access.token
+Everytime our frontend calls a protected route api to our backend endpoint, we need the JWT to verify user is logged in so we'll use getSession to get it. This is what api.js helper is for.
+Whenever a page loads, a question is "am I logged in?". We'll use getsession to determine here.
+Some pages should only work when logged in such as our my-posts page. We use getSession here
+When the user creates a post, there may be info we want to attach/prefill such as contact info or display name. This prevents an extra backend call
+IMPORTANT: We can add something called onauthstatechange, lets do later, whenever something depends on loginstate so it immediately checks for logged in change
+*/
+export async function getSession() {
+    return await supabase.auth.getSession();
+}
