@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Post a Job — Rolyn</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="header-logo" href="index.html" aria-label="Rolyn home">
+          <img src="../media/rolyn-logo.png" alt="Rolyn" />
+        </a>
+        <form class="header-search" role="search">
+          <input type="search" name="q" placeholder="Search jobs, services..." aria-label="Search" />
+        </form>
+        <nav class="header-actions" aria-label="Account">
+          <a href="login.html" class="btn btn-ghost">Login</a>
+          <a href="signup.html" class="btn btn-ghost">Sign Up</a>
+          <a href="create.html" class="btn btn-primary">Post</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="page-layout create-layout">
+      <aside class="sidebar" aria-label="Posting help">
+        <div class="sidebar-card">
+          <h2 class="sidebar-heading">Tips</h2>
+          <ul class="create-tips">
+            <li>Use a clear title so workers know the role at a glance.</li>
+            <li>Include schedule, tasks, and what you provide (tools, supplies, etc.).</li>
+            <li>Set a fair pay range in Philippine pesos (₱).</li>
+          </ul>
+        </div>
+
+        <div class="sidebar-card post-preview-card" aria-live="polite">
+          <h2 class="sidebar-heading">Preview</h2>
+          <p id="preview-meta" class="filter-label">Category · Term · Location</p>
+          <h3 id="preview-title" class="post-preview-title">Job title</h3>
+          <p id="preview-description" class="post-preview-body">
+            Your description will appear here as you type.
+          </p>
+          <p id="preview-pay" class="post-preview-pay"><strong>Pay range:</strong> —</p>
+        </div>
+      </aside>
+
+      <main class="mainpostings">
+        <section class="sidebar-card" aria-label="Create a job post">
+          <h1 class="sidebar-heading">Post a job</h1>
+          <p class="auth-lead">Fill in the details below to preview how your listing will look on the home feed.</p>
+
+          <div id="create-form" class="create-form">
+            <fieldset class="form-section">
+              <legend class="form-section-title">Job details</legend>
+
+              <div class="auth-field">
+                <label class="filter-label" for="title">Title</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="title"
+                  name="title"
+                  placeholder="e.g. Weekly house cleaning"
+                  maxlength="120"
+                />
+              </div>
+
+              <div class="auth-field">
+                <label class="filter-label" for="category">Job type</label>
+                <select class="filter-select" id="category" name="category">
+                  <option value="">Select a category</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="cooking">Cooking</option>
+                  <option value="service">Service</option>
+                  <option value="kidcare">Kid care</option>
+                  <option value="transportation">Transportation</option>
+                </select>
+              </div>
+
+              <div class="auth-field">
+                <label class="filter-label" for="description">Description</label>
+                <textarea
+                  class="auth-input form-textarea"
+                  id="description"
+                  name="description"
+                  rows="6"
+                  placeholder="Describe the work, schedule, and anything the worker should know."
+                  maxlength="2000"
+                ></textarea>
+                <p class="form-hint"><span id="description-count">0</span> / 2000</p>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section">
+              <legend class="form-section-title">Location &amp; schedule</legend>
+
+              <div class="form-row">
+                <div class="auth-field">
+                  <label class="filter-label" for="region">Location</label>
+                  <select class="filter-select" id="region" name="region">
+                    <option value="">Select location</option>
+                    <option value="manila">Manila</option>
+                    <option value="ncr">Metro Manila (NCR)</option>
+                    <option value="cebu">Cebu</option>
+                    <option value="davao">Davao</option>
+                    <option value="paloalto">Palo Alto</option>
+                  </select>
+                </div>
+
+                <div class="auth-field">
+                  <label class="filter-label" for="term">Job term</label>
+                  <select class="filter-select" id="term" name="term">
+                    <option value="">Select term</option>
+                    <option value="onetime">One time</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section">
+              <legend class="form-section-title">Pay (₱)</legend>
+
+              <div class="form-row">
+                <div class="auth-field">
+                  <label class="filter-label" for="price-min">Minimum</label>
+                  <input
+                    class="auth-input"
+                    type="number"
+                    id="price-min"
+                    name="priceMin"
+                    min="0"
+                    step="1"
+                    placeholder="800"
+                  />
+                </div>
+                <div class="auth-field">
+                  <label class="filter-label" for="price-max">Maximum</label>
+                  <input
+                    class="auth-input"
+                    type="number"
+                    id="price-max"
+                    name="priceMax"
+                    min="0"
+                    step="1"
+                    placeholder="1200"
+                  />
+                </div>
+              </div>
+              <p class="form-hint">Leave maximum blank if you offer a fixed rate.</p>
+            </fieldset>
+
+            <div class="form-actions form-actions-post">
+              <button type="button" class="btn btn-primary btn-post">Post</button>
+              <a href="index.html" class="btn btn-ghost">Back to home</a>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const CATEGORY_LABELS = {
+        cleaning: "Cleaning",
+        cooking: "Cooking",
+        service: "Service",
+        kidcare: "Kid care",
+        transportation: "Transportation",
+      };
+
+      const REGION_LABELS = {
+        manila: "Manila",
+        ncr: "Metro Manila (NCR)",
+        cebu: "Cebu",
+        davao: "Davao",
+        paloalto: "Palo Alto",
+      };
+
+      const TERM_LABELS = {
+        onetime: "One time",
+        daily: "Daily",
+        weekly: "Weekly",
+        monthly: "Monthly",
+        yearly: "Yearly",
+      };
+
+      const form = document.getElementById("create-form");
+      const descriptionCount = document.getElementById("description-count");
+      const previewMeta = document.getElementById("preview-meta");
+      const previewTitle = document.getElementById("preview-title");
+      const previewDescription = document.getElementById("preview-description");
+      const previewPay = document.getElementById("preview-pay");
+
+      function labelFor(map, value) {
+        return value ? map[value] || value : "—";
+      }
+
+      function formatPay(min, max) {
+        if (!min && min !== 0) return "—";
+        const fmt = (n) =>
+          Number(n).toLocaleString("en-PH", { maximumFractionDigits: 0 });
+        if (max && Number(max) > Number(min)) {
+          return `₱${fmt(min)}–₱${fmt(max)}`;
+        }
+        return `₱${fmt(min)}`;
+      }
+
+      function updatePreview() {
+        const category = document.getElementById("category").value;
+        const term = document.getElementById("term").value;
+        const region = document.getElementById("region").value;
+        const title = document.getElementById("title").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const priceMin = document.getElementById("price-min").value;
+        const priceMax = document.getElementById("price-max").value;
+
+        previewMeta.textContent = [
+          labelFor(CATEGORY_LABELS, category),
+          labelFor(TERM_LABELS, term),
+          labelFor(REGION_LABELS, region),
+        ].join(" · ");
+
+        previewTitle.textContent = title || "Job title";
+        previewDescription.textContent =
+          description || "Your description will appear here as you type.";
+        previewPay.innerHTML = `<strong>Pay range:</strong> ${formatPay(priceMin, priceMax)}`;
+      }
+
+      function updateDescriptionCount() {
+        descriptionCount.textContent = String(
+          document.getElementById("description").value.length
+        );
+      }
+
+      function refreshPreview() {
+        updatePreview();
+        updateDescriptionCount();
+      }
+
+      form.addEventListener("input", refreshPreview);
+      form.addEventListener("change", refreshPreview);
+      refreshPreview();
+    </script>
+  </body>
+</html>

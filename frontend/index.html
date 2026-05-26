@@ -1,0 +1,121 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rolyn: Job Site for Filipinos</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="header-logo" href="index.html" aria-label="Rolyn home">
+          <img src="../media/rolyn-logo.png" alt="Rolyn" />
+        </a>
+        <form class="header-search" role="search">
+          <input type="search" name="q" placeholder="Search jobs, services..." aria-label="Search" />
+        </form>
+        <nav class="header-actions" aria-label="Account">
+          <a href="login.html" class="btn btn-ghost">Login</a>
+          <a href="signup.html" class="btn btn-ghost">Sign Up</a>
+          <a href="create.html" class="btn btn-primary">Post</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="page-layout">
+      <aside class="sidebar" aria-label="Job filters">
+        <div class="sidebar-card">
+          <h2 class="sidebar-heading">Filters</h2>
+
+          <fieldset class="filter-group jobtypefilter">
+            <legend>Job type</legend>
+            <ul class="filter-checklist">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" name="category" value="cleaning" />
+                  <span>Cleaning</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" name="category" value="cooking" />
+                  <span>Cooking</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" name="category" value="service" />
+                  <span>Service</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" name="category" value="kidcare" />
+                  <span>Kid care</span>
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" name="category" value="transportation" />
+                  <span>Transportation</span>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <div class="filter-group locationfilter">
+            <label class="filter-label" for="locations">Location</label>
+            <select class="filter-select" name="locations" id="locations">
+              <option value="">All locations</option>
+              <option value="manila">Manila</option>
+              <option value="ncr">Metro Manila (NCR)</option>
+              <option value="cebu">Cebu</option>
+              <option value="davao">Davao</option>
+              <option value="paloalto">Palo Alto</option>
+            </select>
+          </div>
+
+          <div class="filter-group timeperiodfilter">
+            <label class="filter-label" for="times">Job term</label>
+            <select class="filter-select" name="times" id="times">
+              <option value="">Any term</option>
+              <option value="onetime">One time</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+
+          <button type="button" class="btn btn-ghost btn-block sidebar-clear">Clear filters</button>
+        </div>
+      </aside>
+
+      <main class="mainpostings">
+        <section class="recentlyposted" aria-label="Recent job postings">
+          <h2 class="sidebar-heading">Recently posted</h2>
+
+          <article class="sidebar-card">
+            <p class="filter-label">Cleaning · Weekly · Manila</p>
+            <h3>Weekly House Cleaning</h3>
+            <p>Looking for someone to clean a 2-bedroom condo every Saturday morning. Supplies provided on site.</p>
+            <p><strong>Pay range:</strong> ₱800–₱1,200 per visit</p>
+            <a href="listing.html" class="btn btn-ghost">More</a>
+          </article>
+
+        </section>
+      </main>
+    </div>
+    <script>
+      document.querySelector(".sidebar-clear")?.addEventListener("click", () => {
+        document.querySelectorAll(".sidebar input[type=checkbox]").forEach((el) => {
+          el.checked = false;
+        });
+        document.getElementById("locations").value = "";
+        document.getElementById("times").value = "";
+      });
+    </script>
+  </body>
+</html>

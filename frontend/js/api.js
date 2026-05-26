@@ -34,11 +34,10 @@ import { getSession } from './auth.js'; // returns current supabase session, wra
 
 async function request(path, options = {}) {
     // pulls the JWT from the current session, if the user is logged in
-    const session = await getSession(); // ask Supabase what the current session is
-    const jwt = session?.access_token; // ?. is optional chaining. If session is null (user not logged in), undefined is returned instead of crashing. access_token is the JWT property
+    const { data } = await getSession();
+    const jwt = data?.session?.access_token;
 
-    // Start with whatever headers the caller has passed in (prob none)
-    const headers = { ...BACKEND_URL(options.headers || {}) }; // copy any caller supplied headers. Custom headers are rarely passed. Preserves them if there are
+    const headers = { ...(options.headers || {}) };
 
     // For JSON bodies, set Content-Type. For FormData (file/image uploads), don't set it, the browser sets it automatically with the correwct multipart boundary (multipart/form-data; boundary=...) is needed for file upload
     if (options.body && !(options.body instanceof FormData)) {
