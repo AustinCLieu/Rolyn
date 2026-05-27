@@ -31,6 +31,8 @@
           <div class="profile-avatar" id="profile-avatar" aria-hidden="true">?</div>
           <h1 class="profile-name" id="profile-name">Loading…</h1>
           <p class="profile-email" id="profile-email"></p>
+          <p class="profile-location" id="profile-location-display"></p>
+          <p class="profile-phone"    id="profile-phone-display"></p>
           <p class="profile-member-since" id="profile-member-since"></p>
         </div>
  
@@ -92,6 +94,24 @@
                   <label class="filter-label" for="display-name">Name</label>
                   <input class="auth-input" type="text" id="display-name" name="display-name" autocomplete="name" placeholder="Your name" />
                 </div>
+                
+                <div class="auth-field">
+                    <label class="filter-label" for="profile-location">Location</label>
+                    <select class="auth-input filter-select" id="profile-location" name="profile-location">
+                        <option value="">Select your city…</option>
+                        <option value="Manila">Manila</option>
+                        <option value="Metro Manila (NCR)">Metro Manila (NCR)</option>
+                        <option value="Cebu">Cebu</option>
+                        <option value="Davao">Davao</option>
+                        <option value="Palo Alto">Palo Alto</option>
+                    </select>
+                </div>
+
+                <div class="auth-field">
+                    <label class="filter-label" for="profile-phone">Phone number <span class="auth-field-optional">(optional)</span></label>
+                    <input class="auth-input" type="tel" id="profile-phone" name="profile-phone" autocomplete="tel" placeholder="+63 912 345 6789" />
+                </div>
+
                 <div class="form-actions">
                   <button type="button" id="save-name-btn" class="btn btn-primary">Save name</button>
                 </div>

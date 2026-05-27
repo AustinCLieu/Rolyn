@@ -16,19 +16,32 @@ document.addEventListener('DOMContentLoaded', async () => {
  
   // ── Populate identity card ──
   const email   = user.email ?? '';
-  const name    = user.user_metadata?.display_name ?? email.split('@')[0];
-  const initial = name.charAt(0).toUpperCase();
+  const meta     = user.user_metadata ?? {};
+  const name     = meta.display_name ?? email.split('@')[0];
+  const location = meta.location ?? '';
+  const phone    = meta.phone ?? '';
+  const initial  = name.charAt(0).toUpperCase();
+  const profileLocationEl = document.getElementById('profile-location');
+  const profilePhoneEl    = document.getElementById('profile-phone'); 
+  if (profileLocationEl) profileLocationEl.value = location;
+  if (profilePhoneEl)    profilePhoneEl.value    = phone;
  
   const createdAt = user.created_at
     ? new Date(user.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long' })
     : '';
  
-  document.getElementById('profile-avatar').textContent       = initial;
-  document.getElementById('profile-name').textContent         = name;
-  document.getElementById('profile-email').textContent        = email;
-  document.getElementById('profile-member-since').textContent = createdAt ? `Member since ${createdAt}` : '';
-  document.getElementById('display-name').value               = name;
-  document.getElementById('new-email').value                  = email;
+  document.getElementById('profile-avatar').textContent        = initial;
+  document.getElementById('profile-name').textContent          = name;
+  document.getElementById('profile-email').textContent         = email;
+  document.getElementById('profile-member-since').textContent  = createdAt ? `Member since ${createdAt}` : '';
+  document.getElementById('display-name').value                = name;
+  document.getElementById('new-email').value                   = email;
+
+// Populate the new fields if the settings inputs exist
+const locationEl = document.getElementById('profile-location-display');
+const phoneEl    = document.getElementById('profile-phone-display');
+if (locationEl) locationEl.textContent = location || 'Not set';
+if (phoneEl)    phoneEl.textContent    = phone    || 'Not set';
  
   // ── Tab switching ──
   const tabs    = document.querySelectorAll('.profile-tab');
@@ -64,10 +77,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
  
-    // Update metadata via your auth.js updateUserName function
-    // Replace with your actual auth call:
-    // const { error } = await updateUserName(newName);
-    // if (error) { showError(nameError, error.message); return; }
+    const { error } = await updateUserName({
+        display_name: newName,
+        location: document.getElementById('profile-location')?.value ?? '',
+        phone:    document.getElementById('profile-phone')?.value.trim() ?? '',
+    });
  
     document.getElementById('profile-name').textContent = newName;
     document.getElementById('profile-avatar').textContent = newName.charAt(0).toUpperCase();

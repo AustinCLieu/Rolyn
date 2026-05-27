@@ -605,6 +605,11 @@ body {
   flex-shrink: 0;
 }
 
-
+.auth-field-optional {
+  font-weight: 400;
+  color: #98a2b3;
+  text-transform: none;
+  letter-spacing: 0;
+}
 
 

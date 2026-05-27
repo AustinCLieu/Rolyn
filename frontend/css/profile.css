@@ -69,6 +69,12 @@
 .profile-post-btn {
   margin-top: 0.25rem;
 }
+
+.profile-location .profile-phone {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  color: #98a2b3;
+}
  
 /* ---------- Sidebar nav ---------- */
  
@@ -393,3 +399,4 @@
     gap: 0.75rem;
   }
 }
+

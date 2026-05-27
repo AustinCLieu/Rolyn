@@ -15,7 +15,13 @@ export async function signInWithGoogle() { //async cuz this takes time, so we aw
 // for users who sign in with email password instead of Google. 
 export async function signInWithEmail(email, password) { // takes email and password as args. Our sign in form will pass them in
     // Supabase verifies the password against its stored hash and returns a JWT if it matches. Return await returns a { data, error } object, so when we call this function, we can use error to check if it worked 
-    return await supabase.auth.signInWithPassword({ email, password });
+    return await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: metadata   // stored as user.user_metadata
+        }
+    });
 }
 
 // creates a new user. Supabase will hash the password, insert a row into the auth.users table, and will log them in or immediately send a confirmation email (default is email)

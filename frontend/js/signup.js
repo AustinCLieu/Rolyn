@@ -131,12 +131,21 @@ document.addEventListener("DOMContentLoaded", () => {
         showError("");
 
         const email    = form.email.value.trim();
+        const fullName = form['full-name'].value.trim();
+        const location = form.location.value;
+        const phone    = form.phone.value.trim();
         const password = passwordEl.value;
         const confirm  = confirmEl.value;
 
         // Check all fields are filled
-        if (!email || !password || !confirm) {
-            showError("Please fill in all fields.");
+        if (!email || !fullName || !location || !password || !confirm) {
+            showError("Please fill in all required fields.");
+            return;
+        }
+
+            if (fullName.length < 2) {
+            showError("Please enter your full name.");
+            form['full-name'].focus();
             return;
         }
 
@@ -167,7 +176,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const { error } = await signUp(email, password);
+        const { error } = await signUpWithEmail(email, password, {
+            display_name: fullName,
+            location,
+            phone,
+        });
         if (error) {
             showError(error.message);
             return;
