@@ -533,74 +533,78 @@ body {
   }
 }
 
-/* ---------- sign-up Page ---------- */
+/* ---------- Sign-up Page ---------- */
 
 /* Password strength indicator */
-      .strength-bar-track {
-        display: flex;
-        gap: 4px;
-        margin-top: 0.5rem;
-      }
- 
-      .strength-segment {
-        height: 4px;
-        flex: 1;
-        border-radius: 999px;
-        background: #e4e7ec;
-        transition: background 0.25s;
-      }
- 
-      .strength-segment.active-weak   { background: #f04438; }
-      .strength-segment.active-fair   { background: #f79009; }
-      .strength-segment.active-good   { background: #12b76a; }
-      .strength-segment.active-strong { background: #027a48; }
- 
-      .strength-label {
-        margin: 0.375rem 0 0;
-        font-size: 0.8125rem;
-        color: #98a2b3;
-        min-height: 1.25em;
-        transition: color 0.2s;
-      }
- 
-      .strength-label.weak   { color: #f04438; }
-      .strength-label.fair   { color: #f79009; }
-      .strength-label.good   { color: #12b76a; }
-      .strength-label.strong { color: #027a48; }
- 
-      /* Match icon inside confirm field */
-      .input-wrapper {
-        position: relative;
-        margin-top: 0.375rem;
-      }
- 
-      .input-wrapper .auth-input {
-        margin-top: 0;
-        padding-right: 2.25rem;
-        width: 100%;
-      }
- 
-      .match-icon {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1rem;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
- 
-      .match-icon.visible { opacity: 1; }
- 
-      /* Google button with logo */
-      .btn-google {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.625rem;
-      }
- 
-      .btn-google svg {
-        flex-shrink: 0;
-      }
+.strength-bar-track {
+  display: flex;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.strength-segment {
+  height: 4px;
+  flex: 1;
+  border-radius: 999px;
+  background: #e4e7ec;
+  transition: background 0.25s;
+}
+
+.strength-segment.active-weak   { background: #f04438; }
+.strength-segment.active-fair   { background: #f79009; }
+.strength-segment.active-good   { background: #12b76a; }
+.strength-segment.active-strong { background: #027a48; }
+
+.strength-label {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: #98a2b3;
+  min-height: 1.25em;
+  transition: color 0.2s;
+}
+
+.strength-label.weak   { color: #f04438; }
+.strength-label.fair   { color: #f79009; }
+.strength-label.good   { color: #12b76a; }
+.strength-label.strong { color: #027a48; }
+
+/* Match icon inside confirm field */
+.input-wrapper {
+  position: relative;
+  margin-top: 0.375rem;
+}
+
+.input-wrapper .auth-input {
+  margin-top: 0;
+  padding-right: 2.25rem;
+  width: 100%;
+}
+
+.match-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.match-icon.visible { opacity: 1; }
+
+/* Google button with logo */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+}
+
+.btn-google svg {
+  flex-shrink: 0;
+}
+
+
+
+

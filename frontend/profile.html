@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Profile — Rolyn</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/profile.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="header-logo" href="index.html" aria-label="Rolyn home">
+          <img src="../media/rolyn-logo.png" alt="Rolyn" />
+        </a>
+        <form class="header-search" role="search">
+          <input type="search" name="q" placeholder="Search jobs, services..." aria-label="Search" />
+        </form>
+        <nav class="header-actions" aria-label="Account" id="header-actions">
+          <!-- filled by header.js -->
+        </nav>
+      </div>
+    </header>
+ 
+    <div class="profile-layout">
+ 
+      <!-- Left column: identity card + nav -->
+      <aside class="profile-sidebar">
+ 
+        <div class="sidebar-card profile-identity-card">
+          <div class="profile-avatar" id="profile-avatar" aria-hidden="true">?</div>
+          <h1 class="profile-name" id="profile-name">Loading…</h1>
+          <p class="profile-email" id="profile-email"></p>
+          <p class="profile-member-since" id="profile-member-since"></p>
+        </div>
+ 
+        <nav class="sidebar-card profile-nav-card" aria-label="Profile sections">
+          <ul class="profile-nav">
+            <li>
+              <button class="profile-nav-btn active" data-tab="listings" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                My listings
+              </button>
+            </li>
+            <li>
+              <button class="profile-nav-btn" data-tab="settings" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Account settings
+              </button>
+            </li>
+          </ul>
+        </nav>
+ 
+      </aside>
+ 
+      <!-- Right column: tab content -->
+      <main class="profile-main">
+ 
+        <!-- My listings tab -->
+        <section id="tab-listings" class="profile-tab" aria-label="My listings">
+          <div class="profile-tab-header">
+            <h2 class="sidebar-heading">My listings</h2>
+            <a href="create.html" class="btn btn-primary">+ New listing</a>
+          </div>
+ 
+          <div id="listings-empty" class="profile-empty" hidden>
+            <div class="profile-empty-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <p class="profile-empty-text">You haven't posted any listings yet.</p>
+            <a href="create.html" class="btn btn-primary">Post your first listing</a>
+          </div>
+ 
+          <div id="listings-list" class="profile-listings"></div>
+        </section>
+ 
+        <!-- Account settings tab -->
+        <section id="tab-settings" class="profile-tab" hidden aria-label="Account settings">
+          <div class="profile-tab-header">
+            <h2 class="sidebar-heading">Account settings</h2>
+          </div>
+ 
+          <div class="profile-settings-stack">
+ 
+            <!-- Display name -->
+            <div class="sidebar-card profile-settings-card">
+              <h3 class="profile-settings-card-title">Display name</h3>
+              <p id="settings-error-name" class="auth-error" role="alert" hidden></p>
+              <p id="settings-success-name" class="form-success" role="status" hidden></p>
+              <div class="auth-form">
+                <div class="auth-field">
+                  <label class="filter-label" for="display-name">Name</label>
+                  <input class="auth-input" type="text" id="display-name" name="display-name" autocomplete="name" placeholder="Your name" />
+                </div>
+                <div class="form-actions">
+                  <button type="button" id="save-name-btn" class="btn btn-primary">Save name</button>
+                </div>
+              </div>
+            </div>
+ 
+            <!-- Change email -->
+            <div class="sidebar-card profile-settings-card">
+              <h3 class="profile-settings-card-title">Email address</h3>
+              <p id="settings-error-email" class="auth-error" role="alert" hidden></p>
+              <p id="settings-success-email" class="form-success" role="status" hidden></p>
+              <div class="auth-form">
+                <div class="auth-field">
+                  <label class="filter-label" for="new-email">New email</label>
+                  <input class="auth-input" type="email" id="new-email" name="new-email" autocomplete="email" />
+                </div>
+                <div class="form-actions">
+                  <button type="button" id="save-email-btn" class="btn btn-primary">Update email</button>
+                </div>
+              </div>
+            </div>
+ 
+            <!-- Change password -->
+            <div class="sidebar-card profile-settings-card">
+              <h3 class="profile-settings-card-title">Change password</h3>
+              <p id="settings-error-pw" class="auth-error" role="alert" hidden></p>
+              <p id="settings-success-pw" class="form-success" role="status" hidden></p>
+              <div class="auth-form">
+                <div class="auth-field">
+                  <label class="filter-label" for="current-password">Current password</label>
+                  <input class="auth-input" type="password" id="current-password" autocomplete="current-password" />
+                </div>
+                <div class="auth-field">
+                  <label class="filter-label" for="new-password">New password</label>
+                  <input class="auth-input" type="password" id="new-password" autocomplete="new-password" />
+                  <div class="strength-bar-track" aria-hidden="true">
+                    <span class="strength-segment" id="pseg1"></span>
+                    <span class="strength-segment" id="pseg2"></span>
+                    <span class="strength-segment" id="pseg3"></span>
+                    <span class="strength-segment" id="pseg4"></span>
+                  </div>
+                  <p class="strength-label" id="pw-strength-label" aria-live="polite"></p>
+                </div>
+                <div class="auth-field">
+                  <label class="filter-label" for="confirm-new-password">Confirm new password</label>
+                  <div class="input-wrapper">
+                    <input class="auth-input" type="password" id="confirm-new-password" autocomplete="new-password" />
+                    <span class="match-icon" id="pw-match-icon" aria-hidden="true"></span>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="button" id="save-pw-btn" class="btn btn-primary">Update password</button>
+                </div>
+              </div>
+            </div>
+ 
+            <!-- Danger zone -->
+            <div class="sidebar-card profile-settings-card profile-danger-card">
+              <h3 class="profile-settings-card-title profile-danger-title">Danger zone</h3>
+              <p class="profile-danger-text">Deleting your account is permanent. All your listings will be removed and cannot be recovered.</p>
+              <button type="button" id="delete-account-btn" class="btn profile-delete-btn">Delete my account</button>
+            </div>
+ 
+          </div>
+        </section>
+ 
+      </main>
+    </div>
+ 
+    <script type="module" src="./js/header.js"></script>
+    <script type="module" src="./js/profile.js"></script>
+  </body>
+</html>
