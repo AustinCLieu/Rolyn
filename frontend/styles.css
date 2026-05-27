@@ -179,14 +179,14 @@ body {
 
 .recentlyposted .sidebar-card h3 {
   margin: 0.25rem 0 0.5rem;
-  font-size: 1.0625rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #101828;
 }
 
 .recentlyposted .sidebar-card p {
-  margin: 0 0 0.75rem;
-  font-size: 0.9375rem;
+  margin: 0 0 1.5rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: #475467;
 }
@@ -208,7 +208,7 @@ body {
 
 .auth-lead {
   margin: -0.5rem 0 1.25rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: #475467;
 }
@@ -227,7 +227,7 @@ body {
   width: 100%;
   margin-top: 0.375rem;
   padding: 0.625rem 0.75rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: #1a1a1a;
   background: #fff;
   border: 1px solid #e4e7ec;
@@ -287,7 +287,7 @@ body {
 .create-tips {
   margin: 0;
   padding-left: 1.125rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.55;
   color: #475467;
 }
@@ -302,21 +302,21 @@ body {
 
 .post-preview-title {
   margin: 0.25rem 0 0.5rem;
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #101828;
 }
 
 .post-preview-body {
   margin: 0 0 0.75rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: #475467;
 }
 
 .post-preview-pay {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: #475467;
 }
 
