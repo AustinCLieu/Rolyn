@@ -29,6 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
         errorEl.hidden = true;
     }
 
+    const BANNED_CHARS = /[<>"'`\\\/;=&|% ]/g;
+    const BANNED_CHARS_TEST = /[<>"'`\\\/;=&|% ]/;
+
     /* ── Password strength ── */
     function scorePassword(pw) {
     if (!pw) return 0;
@@ -68,6 +71,25 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     passwordEl.addEventListener("input", () => {
+        // Strip banned characters as the user types
+        const raw = passwordEl.value;
+        if (BANNED_CHARS_TEST.test(raw)) {
+            passwordEl.value = raw.replace(BANNED_CHARS, "");
+            // Show a one-time warning beneath the field
+            let warn = document.getElementById("banned-char-warning");
+            if (!warn) {
+            warn = document.createElement("p");
+            warn.id = "banned-char-warning";
+            warn.className = "form-hint";
+            warn.style.color = "#f79009";
+            warn.textContent = 'Some characters are not allowed: < > " \' ` \\ / ; = & | %';
+            passwordEl.parentElement.insertBefore(warn, document.querySelector(".strength-bar-track"));
+            }
+            // Auto-hide after 3 seconds
+            clearTimeout(warn._hideTimer);
+            warn._hideTimer = setTimeout(() => warn.remove(), 3000);
+        }
+
         const score = scorePassword(passwordEl.value);
         const level = LEVELS[score];
 
@@ -75,14 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
             seg.className = "strength-segment";
             if (score > 0 && i < score) {
             seg.classList.add(`active-${level.cls}`);
-            }
-        });
+        }
+    });
 
-        strengthLbl.className = "strength-label" + (level ? ` ${level.cls}` : "");
-        strengthLbl.textContent = level ? level.label : "";
+    strengthLbl.className = "strength-label" + (level ? ` ${level.cls}` : "");
+    strengthLbl.textContent = level ? level.label : "";
 
-        // re-run confirm check whenever password changes
-        updateMatchIcon();
+    updateMatchIcon();
     });
 
     /* ── Confirm match icon ── */
@@ -116,6 +137,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Check all fields are filled
         if (!email || !password || !confirm) {
             showError("Please fill in all fields.");
+            return;
+        }
+
+        if (BANNED_CHARS_TEST.test(password)) {
+            showError('Password contains characters that are not allowed: < > " \' ` \\ / ; = & | %');
+            passwordEl.focus();
             return;
         }
 
