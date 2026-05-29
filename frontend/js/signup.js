@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const { error } = await signUpWithEmail(email, password, {
+        const { error } = await signUp(email, password, {
             display_name: fullName,
             location,
             phone,
