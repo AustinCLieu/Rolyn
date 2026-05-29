@@ -12,7 +12,7 @@ const app = express(); // returns a new application object. We'll configure, att
 
 // app.use(...) adds middleware that runs on every request
 app.use(cors()); // calls the cors function which returns express middleware and attaches it. Middleware looks at it and adds the right CORS response headers so browsers will allow the response. We can add specific origins in prod
-app.use(express.json()); // built in express middleware that parses incoming JSON request bodies. Attaches parsed object to req.body
+app.use(express.json()); // built in express middleware that parses incoming JSON request bodies. Attaches parsed object to req.body. We'll send josn from the frontend instead of needing to do .body with urlencoded.
 
 // This is the URl to file mapping. 
 // app.use(prefix, router) attaches a router at a URL prefix. Any request whose URL starts with /api/auth gets handed to authRouter to deal with
