@@ -50,6 +50,8 @@
           <p class="auth-lead">Fill in the details below to preview how your listing will look on the home feed.</p>
 
           <div id="create-form" class="create-form">
+            <p id="create-error"   class="auth-error"   role="alert"  hidden></p>
+            <p id="create-success" class="form-success" role="status" hidden></p>
             <fieldset class="form-section">
               <legend class="form-section-title">Job details</legend>
 
@@ -160,7 +162,7 @@
       </main>
     </div>
 
-    <script>
+    <!-- <script>
       const CATEGORY_LABELS = {
         cleaning: "Cleaning",
         cooking: "Cooking",
@@ -240,7 +242,8 @@
       form.addEventListener("input", refreshPreview);
       form.addEventListener("change", refreshPreview);
       refreshPreview();
-    </script>
+    </script> -->
+    <script type="module" src="../js/create.js"></script>
     <script type="module" src="../js/header.js"></script>
   </body>
 </html>

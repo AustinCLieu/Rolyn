@@ -1,32 +1,133 @@
-// This file is the entry point of our backend. It's what runs after npm run dev.
-// It's responsible for creating an express application, configuring how the app behaves (middleware, json parsing, etc), telling the app which URLs go to which route files, starting the server to listen for incoming requests
+import express    from 'express';
+import cors       from 'cors';
+import dotenv     from 'dotenv';
+import path       from 'path';
+import { fileURLToPath } from 'url';
+import { DatabaseSync }  from 'node:sqlite'; // built into Node 22+, no install needed
+import authRouter from './routes/auth.js';
 
-import express from 'express'; // 
-import cors from 'cors'; // middleware that handles CORS browser security, stops browser from blocking calling on different ports
-import dotenv from 'dotenv'; // reads .env file
-import authRouter from './routes/auth.js' // authRouther
+dotenv.config();
 
-dotenv.config(); // reads .env and populates process.env with the contents
+// __dirname isn't available in ES modules, so we derive it from import.meta.url
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
-const app = express(); // returns a new application object. We'll configure, attach middleware, routes, and tell app to start listening
+// ── Database setup ──
+// DatabaseSync opens (or creates) a .db file at the given path.
+// No external package needed — node:sqlite is built into Node.js.
+const db = new DatabaseSync(path.join(__dirname, 'rolyn.db'));
 
-// app.use(...) adds middleware that runs on every request
-app.use(cors()); // calls the cors function which returns express middleware and attaches it. Middleware looks at it and adds the right CORS response headers so browsers will allow the response. We can add specific origins in prod
-app.use(express.json()); // built in express middleware that parses incoming JSON request bodies. Attaches parsed object to req.body. We'll send josn from the frontend instead of needing to do .body with urlencoded.
+// Create the posts table on first run (IF NOT EXISTS makes it safe to run every time)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     TEXT,
+    author_name TEXT    NOT NULL DEFAULT 'Anonymous',
+    title       TEXT    NOT NULL,
+    category    TEXT    NOT NULL,
+    description TEXT    NOT NULL,
+    region      TEXT    NOT NULL,
+    term        TEXT    NOT NULL,
+    price_min   INTEGER,
+    price_max   INTEGER,
+    active      INTEGER NOT NULL DEFAULT 1,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+  )
+`);
 
-// This is the URl to file mapping. 
-// app.use(prefix, router) attaches a router at a URL prefix. Any request whose URL starts with /api/auth gets handed to authRouter to deal with
-// Inside authRouter, such as routes/auth.js, the routes use relative paths like /me. The prefiux gets prepended automatically so router.get('/me', ...) become the URL /api/auth/me from outside
-// When we build routes/posts.js later, we'll add another line here (app.use('/api/posts', postsRouter)). The pattern repeats
-app.use('/api/auth', authRouter); // Without this line, Express has no idea routes/auth.js exists. This activates the auth routes
+// ── Express app ──
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// Tis is a route defined on app insatead of going through a router. It just lets us check if it's on bu running localhost:3000/api/health and seeing status: ok
+// Auth routes (existing — untouched)
+app.use('/api/auth', authRouter);
+
+// ── Posts routes ──
+
+// GET /api/posts — list all active posts, newest first
+// Optional query params: ?category=cleaning&region=manila&term=weekly
+app.get('/api/posts', (req, res) => {
+  const { category, region, term } = req.query;
+
+  let sql      = 'SELECT * FROM posts WHERE active = 1';
+  const params = [];
+
+  if (category) { sql += ' AND category = ?'; params.push(category); }
+  if (region)   { sql += ' AND region = ?';   params.push(region);   }
+  if (term)     { sql += ' AND term = ?';      params.push(term);     }
+
+  sql += ' ORDER BY created_at DESC';
+
+  // db.prepare() compiles the SQL once; .all() runs it and returns every row as an object
+  const posts = db.prepare(sql).all(...params);
+  res.json(posts);
+});
+
+// GET /api/posts/:id — fetch a single post by id
+app.get('/api/posts/:id', (req, res) => {
+  // .get() returns one row as an object, or undefined if not found
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+  res.json(post);
+});
+
+// POST /api/posts — create a new post
+app.post('/api/posts', (req, res) => {
+  const { user_id, author_name, title, category, description, region, term, price_min, price_max } = req.body;
+
+  if (!title || !category || !description || !region || !term) {
+    return res.status(400).json({ error: 'Please fill in all required fields.' });
+  }
+  if (title.length > 120) {
+    return res.status(400).json({ error: 'Title must be 120 characters or fewer.' });
+  }
+  if (description.length > 2000) {
+    return res.status(400).json({ error: 'Description must be 2000 characters or fewer.' });
+  }
+
+  // .run() executes an INSERT/UPDATE/DELETE and returns { lastInsertRowid, changes }
+  const result = db.prepare(`
+    INSERT INTO posts (user_id, author_name, title, category, description, region, term, price_min, price_max)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    user_id     ?? null,
+    author_name ?? 'Anonymous',
+    title,
+    category,
+    description,
+    region,
+    term,
+    price_min ? Number(price_min) : null,
+    price_max ? Number(price_max) : null,
+  );
+
+  // Fetch the full row we just inserted using the auto-generated id
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(result.lastInsertRowid);
+  res.status(201).json(post);
+});
+
+// PATCH /api/posts/:id/close — mark a post as closed without deleting it
+app.patch('/api/posts/:id/close', (req, res) => {
+  const result = db.prepare('UPDATE posts SET active = 0 WHERE id = ?').run(req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Post not found.' });
+  res.json({ success: true });
+});
+
+// DELETE /api/posts/:id — permanently delete a post
+app.delete('/api/posts/:id', (req, res) => {
+  const result = db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Post not found.' });
+  res.json({ success: true });
+});
+
+// ── Health check ──
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
-})
+  res.json({ status: 'ok' });
+});
 
-// Starts the server. 
-const PORT = process.env.PORT || 3000; // Reads the PORT value from .env file. If not set there, fall back to 3000
-app.listen(PORT, () => { // actually starts the server
-    console.log(`Server on http://localhost:${PORT}`); // prints the URL so we know the server is up
+// ── Start server ──
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server on http://localhost:${PORT}`);
 });

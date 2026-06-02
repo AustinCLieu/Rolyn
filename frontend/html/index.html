@@ -121,18 +121,13 @@
         <section class="recentlyposted" aria-label="Recent job postings">
           <h2 class="sidebar-heading">Recently posted</h2>
 
-          <article class="sidebar-card">
-            <p class="filter-label">Cleaning · Weekly · Manila</p>
-            <h3>Weekly House Cleaning</h3>
-            <p>Looking for someone to clean a 2-bedroom condo every Saturday morning. Supplies provided on site.</p>
-            <p><strong>Pay range:</strong> ₱800–₱1,200 per visit</p>
-            <a href="listing.html" class="btn btn-ghost">More details</a>
-          </article>
-
+          <p id="posts-loading" class="posts-status">Loading listings…</p>
+          <p id="posts-empty"   class="posts-status" hidden>No listings found. <a href="create.html">Post the first one!</a></p>
+          <div id="posts-feed"></div>
         </section>
       </main>
     </div>
-    <script>
+    <!-- <script>
       document.querySelector(".sidebar-clear")?.addEventListener("click", () => {
         document.querySelectorAll(".sidebar input[type=checkbox]").forEach((el) => {
           el.checked = false;
@@ -140,7 +135,8 @@
         document.getElementById("locations").value = "";
         document.getElementById("times").value = "";
       });
-    </script>
+    </script> -->
+    <script type="module" src="../js/index.js"></script>
     <script type="module" src="../js/header.js"></script>
   </body>
 </html>
