@@ -13,8 +13,15 @@
         <a class="header-logo" href="index.html" aria-label="Rolyn home">
           <img src="../media/rolyn-logo.png" alt="Rolyn" />
         </a>
-        <form class="header-search" role="search">
-          <input type="search" name="q" placeholder="Search jobs, services..." aria-label="Search" />
+        <form class="header-search" id="header-search-form" role="search">
+          <input
+            type="search"
+            id="search-input"
+            name="q"
+            placeholder="Search jobs, services..."
+            aria-label="Search listings"
+          />
+          <button type="submit" class="header-search-submit">Search</button>
         </form>
         <nav class="header-actions" aria-label="Account" id="header-actions">
           
@@ -124,6 +131,9 @@
           <p id="posts-loading" class="posts-status">Loading listings…</p>
           <p id="posts-empty"   class="posts-status" hidden>No listings found. <a href="create.html">Post the first one!</a></p>
           <div id="posts-feed"></div>
+          <button type="button" id="posts-load-more" class="btn btn-ghost btn-block posts-load-more" hidden>
+            Load more
+          </button>
         </section>
       </main>
     </div>

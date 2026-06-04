@@ -1,14 +1,19 @@
 // js/posts.js — shared API helpers used by create, index, and listing pages
+
+import { BACKEND_URL } from './config.js';
+
+const API = `${BACKEND_URL}/api`;
  
-const API = 'http://localhost:3000/api';
- 
-// Fetch all posts, with optional filters { category, region, term }
+// Fetch a page of posts: filters { category, region, term, q, limit, offset }
 export async function fetchPosts(filters = {}) {
   const params = new URLSearchParams();
   if (filters.category) params.set('category', filters.category);
   if (filters.region)   params.set('region',   filters.region);
-  if (filters.term)     params.set('term',      filters.term);
- 
+  if (filters.term)     params.set('term',     filters.term);
+  if (filters.q)        params.set('q',        filters.q);
+  if (filters.limit != null)  params.set('limit',  String(filters.limit));
+  if (filters.offset != null) params.set('offset', String(filters.offset));
+
   const url = `${API}/posts${params.toString() ? '?' + params : ''}`;
   const res  = await fetch(url);
   if (!res.ok) throw new Error('Failed to load posts.');
@@ -81,11 +86,29 @@ export function formatPay(min, max) {
 }
  
 export function timeAgo(dateStr) {
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  const diff = Math.floor((Date.now() - parsePostDate(dateStr)) / 1000);
   if (diff < 60)   return 'Just now';
   if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
   return `${Math.floor(diff / 86400)} days ago`;
+}
+
+/** SQLite `created_at` → Date (stored as UTC). */
+export function parsePostDate(dateStr) {
+  if (!dateStr) return new Date(NaN);
+  if (dateStr.includes('T')) return new Date(dateStr);
+  return new Date(dateStr.replace(' ', 'T') + 'Z');
+}
+
+/** Exact posting time for display (Philippines). */
+export function formatPostedAt(dateStr) {
+  const d = parsePostDate(dateStr);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-PH', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Manila',
+  });
 }
  
 export function escHtml(str = '') {
