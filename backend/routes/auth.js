@@ -1,45 +1,113 @@
-// All routes under /api/auth/* live here. This is the backend's "who am I" and "manage my account" surface area.
-// This file doesn't handle login or signup, those occur in frontend through supabase auth. 
+// All routes under /api/auth/* live here.
+// Login and signup are handled by Supabase on the frontend — this file only deals with
+// what happens AFTER the user is authenticated (reading/writing their data in SQLite).
 
-import express from 'express'; // we use express to build the router
-import { requireAuth } from '../middleware/requireAuth.js'; // we use requireAuth function we made cuz every route in this file is protected cuz there's no "who am I" endpoint that is public, needs to verify JWT
+import express           from 'express';
+import { requireAuth }   from '../middleware/requireAuth.js';
+import { supabase }      from '../lib/supabase.js';
+import { db }            from '../db.js';
 
-// Later, when /me starts fetching profile data, we'll also need:
-// import { supabase } from '../lib/supabase.js';
+const router = express.Router();
 
-const router = express.Router(); // creates a mini Express app that we attach routes to. 
-
-// '/me' is the path (becomes /api/auth/me after mounting)
-// requireAuth runs first, validates the JWT, and attaches req.user. If the JWT is bad, it sends 401 and the handler never runs
-// Handler only runs if requireAuth calls next(). Echoes req.user back as JSON
+// GET /api/auth/me — return the verified Supabase user + their SQLite profile row.
+// If the user has never been synced yet (e.g. first visit after OAuth redirect), we
+// create their SQLite row here so the profile page always gets a non-null profile.
 router.get('/me', requireAuth, (req, res) => {
-    res.json({ user: req.user });
-    // Right now, this only echos req.user. Later, after we build the 'profiles' table, we'll fetch and include other things in the route.
-    // The JWT only includes supabase's built in auth.users field. We will include things like display_name, location, etc
-    /*
-    const { data, profile } = await supabase
-        .from('profiles')
-        .select('display_name, location, phone, avatar_url')
-        .eq('id', req.user.id)
-        .single();
-    res.json({ user: req.user, profile });
-    must make handler async when we do this cuz we now querying from db
-    */
+  const { id, email, user_metadata } = req.user;
+
+  // Auto-create the SQLite row if it doesn't exist yet.
+  // INSERT OR IGNORE means: do nothing if the row already exists.
+  db.prepare(`
+    INSERT OR IGNORE INTO users (id, email, full_name, location, phone)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(
+    id,
+    email,
+    user_metadata?.display_name ?? user_metadata?.full_name ?? null,
+    user_metadata?.location ?? null,
+    user_metadata?.phone    ?? null,
+  );
+
+  const profile = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  res.json({ user: req.user, profile });
 });
 
-/*
-Future routes that will prob live in this file
-POST /api/auth/profile
-PATCH /api/auth/profile
-POST /api/auth/avatar
-DELETE /api/auth/account
-What is NOT in this file
-POST /login
-POST /signup
-POST /logout
-Anything that issues or refreshes JWTs
-*/
+// POST /api/auth/sync — upsert the logged-in user into SQLite.
+// The frontend calls this right after every login so our SQLite users table stays
+// current even when metadata changes (e.g. updated display name via Google account).
+//
+// ON CONFLICT … DO UPDATE means: if a row with this id already exists, only update
+// the email (which can change). We use COALESCE so profile fields the user already
+// set in our app (full_name, location, phone) are NOT overwritten by the OAuth metadata.
+// COALESCE(users.field, excluded.field) = keep existing value if non-null, else use new.
+router.post('/sync', requireAuth, (req, res) => {
+  const { id, email, user_metadata } = req.user;
 
-// Makes the router importable from server.js
-// Default means "this is the main thing this file exports", no curly braces are needed
+  db.prepare(`
+    INSERT INTO users (id, email, full_name, location, phone)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      email     = excluded.email,
+      full_name = COALESCE(users.full_name, excluded.full_name),
+      location  = COALESCE(users.location,  excluded.location),
+      phone     = COALESCE(users.phone,     excluded.phone)
+  `).run(
+    id,
+    email,
+    user_metadata?.display_name ?? user_metadata?.full_name ?? null,
+    user_metadata?.location ?? null,
+    user_metadata?.phone    ?? null,
+  );
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  res.json({ user });
+});
+
+// PATCH /api/auth/profile — update display name, location, or phone in SQLite.
+// Supabase Auth handles email and password changes separately via its own SDK.
+// All the personal-profile fields the user can edit on their profile page live here.
+router.patch('/profile', requireAuth, (req, res) => {
+  const { full_name, location, phone } = req.body;
+
+  if (full_name !== undefined && (!full_name || full_name.trim().length < 2)) {
+    return res.status(400).json({ error: 'Display name must be at least 2 characters.' });
+  }
+
+  // COALESCE(?, column) means: use the new value if provided, otherwise keep the old one.
+  // This lets a single PATCH update only the fields that were sent.
+  db.prepare(`
+    UPDATE users SET
+      full_name = COALESCE(?, full_name),
+      location  = COALESCE(?, location),
+      phone     = COALESCE(?, phone)
+    WHERE id = ?
+  `).run(
+    full_name?.trim() ?? null,
+    location          ?? null,
+    phone?.trim()     ?? null,
+    req.user.id,
+  );
+
+  const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  res.json({ profile: updated });
+});
+
+// DELETE /api/auth/account — delete the user from Supabase Auth first, then SQLite.
+// We delete from Supabase first so that if it fails we haven't lost the SQLite record yet.
+// supabase.auth.admin.deleteUser requires the service role key we already have.
+router.delete('/account', requireAuth, async (req, res) => {
+  const userId = req.user.id;
+
+  const { error } = await supabase.auth.admin.deleteUser(userId);
+  if (error) {
+    return res.status(500).json({ error: 'Could not remove account from auth service.' });
+  }
+
+  // Auth deletion succeeded — now clean up all their data in SQLite.
+  db.prepare('DELETE FROM posts WHERE user_id = ?').run(userId);
+  db.prepare('DELETE FROM users WHERE id = ?').run(userId);
+
+  res.json({ success: true });
+});
+
 export default router;

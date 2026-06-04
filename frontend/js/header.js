@@ -1,4 +1,4 @@
-import { getSession, signOut } from './auth.js';
+import { getSession, signOut, syncUser } from './auth.js';
 
 const nav = document.getElementById('header-actions');
 
@@ -7,14 +7,10 @@ async function renderHeader() {
   const user = data?.session?.user ?? null;
 
   if (user) {
-    // Logged in — show initial avatar, profile link, sign out
-    const email = user.email ?? '';
-    const initial = email.charAt(0).toUpperCase();
-
     nav.innerHTML = `
-        <a href="profile.html" class="btn btn-ghost header-profile-btn">Profile</a>
-        <button type="button" id="signout-btn" class="btn btn-ghost">Sign out</button>
-        <a href="create.html" class="btn btn-primary">Post</a>
+      <a href="profile.html" class="btn btn-ghost header-profile-btn">Profile</a>
+      <button type="button" id="signout-btn" class="btn btn-ghost">Sign out</button>
+      <a href="create.html" class="btn btn-primary">Post</a>
     `;
 
     document.getElementById('signout-btn').addEventListener('click', async () => {
@@ -22,8 +18,13 @@ async function renderHeader() {
       window.location.href = 'index.html';
     });
 
+    // Sync runs on every page load so the SQLite users row stays up to date.
+    // This is especially important after a Google OAuth redirect, where the user
+    // lands on a page without explicitly going through a "login" button.
+    // syncUser is an upsert, so calling it repeatedly is harmless.
+    syncUser();
+
   } else {
-    // Logged out — show login/signup
     nav.innerHTML = `
       <a href="login.html" class="btn btn-ghost">Login</a>
       <a href="signup.html" class="btn btn-ghost">Sign Up</a>

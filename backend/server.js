@@ -1,54 +1,25 @@
 import express    from 'express';
 import cors       from 'cors';
 import dotenv     from 'dotenv';
-import path       from 'path';
-import { fileURLToPath } from 'url';
-import { DatabaseSync }  from 'node:sqlite'; // built into Node 22+, no install needed
+import { db }     from './db.js';                          // shared SQLite instance
 import authRouter from './routes/auth.js';
+import { requireAuth } from './middleware/requireAuth.js'; // JWT gate
 
 dotenv.config();
 
-// __dirname isn't available in ES modules, so we derive it from import.meta.url
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-
-// ── Database setup ──
-// DatabaseSync opens (or creates) a .db file at the given path.
-// No external package needed — node:sqlite is built into Node.js.
-const db = new DatabaseSync(path.join(__dirname, 'rolyn.db'));
-
-// Create the posts table on first run (IF NOT EXISTS makes it safe to run every time)
-db.exec(`
-  CREATE TABLE IF NOT EXISTS posts (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id     TEXT,
-    author_name TEXT    NOT NULL DEFAULT 'Anonymous',
-    title       TEXT    NOT NULL,
-    category    TEXT    NOT NULL,
-    description TEXT    NOT NULL,
-    region      TEXT    NOT NULL,
-    term        TEXT    NOT NULL,
-    price_min   INTEGER,
-    price_max   INTEGER,
-    active      INTEGER NOT NULL DEFAULT 1,
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-  )
-`);
-
-// ── Express app ──
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Auth routes (existing — untouched)
 app.use('/api/auth', authRouter);
 
 // ── Posts routes ──
 
-// GET /api/posts — list all active posts, newest first
-// Optional query params: ?category=cleaning&region=manila&term=weekly
+// GET /api/posts — list active posts, newest first.
+// Supports optional filters: ?category=tutoring&region=ncr&term=weekly&user_id=<uuid>
+// user_id is used by the profile page to load "my listings".
 app.get('/api/posts', (req, res) => {
-  const { category, region, term } = req.query;
+  const { category, region, term, user_id } = req.query;
 
   let sql      = 'SELECT * FROM posts WHERE active = 1';
   const params = [];
@@ -56,25 +27,26 @@ app.get('/api/posts', (req, res) => {
   if (category) { sql += ' AND category = ?'; params.push(category); }
   if (region)   { sql += ' AND region = ?';   params.push(region);   }
   if (term)     { sql += ' AND term = ?';      params.push(term);     }
+  if (user_id)  { sql += ' AND user_id = ?';   params.push(user_id);  }
 
   sql += ' ORDER BY created_at DESC';
 
-  // db.prepare() compiles the SQL once; .all() runs it and returns every row as an object
   const posts = db.prepare(sql).all(...params);
   res.json(posts);
 });
 
-// GET /api/posts/:id — fetch a single post by id
+// GET /api/posts/:id — single post, public
 app.get('/api/posts/:id', (req, res) => {
-  // .get() returns one row as an object, or undefined if not found
   const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found.' });
   res.json(post);
 });
 
-// POST /api/posts — create a new post
-app.post('/api/posts', (req, res) => {
-  const { user_id, author_name, title, category, description, region, term, price_min, price_max } = req.body;
+// POST /api/posts — create a listing. Requires login.
+// We take user_id from the verified JWT (req.user.id), NOT from the request body.
+// This prevents a logged-in user from spoofing a different user_id.
+app.post('/api/posts', requireAuth, (req, res) => {
+  const { author_name, title, category, description, region, term, price_min, price_max } = req.body;
 
   if (!title || !category || !description || !region || !term) {
     return res.status(400).json({ error: 'Please fill in all required fields.' });
@@ -86,12 +58,11 @@ app.post('/api/posts', (req, res) => {
     return res.status(400).json({ error: 'Description must be 2000 characters or fewer.' });
   }
 
-  // .run() executes an INSERT/UPDATE/DELETE and returns { lastInsertRowid, changes }
   const result = db.prepare(`
     INSERT INTO posts (user_id, author_name, title, category, description, region, term, price_min, price_max)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    user_id     ?? null,
+    req.user.id,
     author_name ?? 'Anonymous',
     title,
     category,
@@ -102,22 +73,27 @@ app.post('/api/posts', (req, res) => {
     price_max ? Number(price_max) : null,
   );
 
-  // Fetch the full row we just inserted using the auto-generated id
   const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(post);
 });
 
-// PATCH /api/posts/:id/close — mark a post as closed without deleting it
-app.patch('/api/posts/:id/close', (req, res) => {
-  const result = db.prepare('UPDATE posts SET active = 0 WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Post not found.' });
+// PATCH /api/posts/:id/close — mark a post inactive. Requires login and ownership.
+app.patch('/api/posts/:id/close', requireAuth, (req, res) => {
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+  if (post.user_id !== req.user.id) return res.status(403).json({ error: 'You do not own this post.' });
+
+  db.prepare('UPDATE posts SET active = 0 WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
 
-// DELETE /api/posts/:id — permanently delete a post
-app.delete('/api/posts/:id', (req, res) => {
-  const result = db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Post not found.' });
+// DELETE /api/posts/:id — permanently delete a post. Requires login and ownership.
+app.delete('/api/posts/:id', requireAuth, (req, res) => {
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+  if (post.user_id !== req.user.id) return res.status(403).json({ error: 'You do not own this post.' });
+
+  db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
 
@@ -126,7 +102,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// ── Start server ──
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server on http://localhost:${PORT}`);

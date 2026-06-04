@@ -1,65 +1,98 @@
-// this file wraps around supabase auth files so that our project has easy functions
+// auth.js — thin wrappers around Supabase Auth + our backend profile endpoints.
+// All pages import from here so auth logic stays in one place.
+
 import { supabase } from './supabase.js';
+import { api }      from './api.js';
 
-// when we run this function, the browser navigates to Google's login page. 
-// After the user signs in, Google redirects back to our website, Supabase notices the redirect, extracts the JWt from the URL, stores it in localStorage, and the user is now logged in. 
-export async function signInWithGoogle() { //async cuz this takes time, so we await inside it
-    const { error } = await supabase.auth.signInWithOAuth({ // supabase.auth.signInWithOAuth is the Supabase function that handles OAuth. The arg is a config object
-        provider: 'google', // tells Supabase which OAuth provider to use, we want Google sign in
-        options: { redirectTo: window.location.origin } // redirects to the current page's domain
-    });
-    if (error) console.error(error); // log if something went wrong
-    // signInWithOAuth returns { data, error } but we only care about error because the real result (the login) happens after the redirect, not in this function's return value
+// Redirect to Google's login page. After sign-in, Google redirects back here,
+// Supabase picks up the OAuth tokens, and the user is logged in.
+export async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) console.error(error);
 }
 
-// for users who sign in with email password instead of Google. 
-export async function signInWithEmail(email, password) { // takes email and password as args. Our sign in form will pass them in
-    // Supabase verifies the password against its stored hash and returns a JWT if it matches. Return await returns a { data, error } object, so when we call this function, we can use error to check if it worked 
-    return await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-            data: metadata   // stored as user.user_metadata
-        }
-    });
+// Bug fix: the original code called supabase.auth.signUp here, which creates a new
+// account instead of signing in. The correct method is signInWithPassword.
+export async function signInWithEmail(email, password) {
+  return await supabase.auth.signInWithPassword({ email, password });
 }
 
-// creates a new user. Supabase will hash the password, insert a row into the auth.users table, and will log them in or immediately send a confirmation email (default is email)
-export async function signUp(email, password) {
-    return await supabase.auth.signUp({ email, password });
+// Creates a new Supabase auth user. metadata is stored as user_metadata on the JWT
+// and is picked up by /api/auth/sync when the user first logs in.
+// Bug fix: the original function ignored the metadata parameter entirely.
+export async function signUp(email, password, metadata = {}) {
+  return await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: metadata },
+  });
 }
 
-// Cleares the JWT from localStorage and tells Supabase to invalidate the session. This means the user is no longer logged in and protected routes to the backend shouldn't work anymore, such as making a post
 export async function signOut() {
-    return await supabase.auth.signOut();
+  return await supabase.auth.signOut();
 }
 
-// this function returns the current session info if the user is logged in, and null if not. It's useful for "am I logged in rn?"
-// It also returns the JWT itself which is useful when calling backend. The returned shape looks like
-/*
-{
-    data: {
-        session: {
-            access_token: 'eyJ...',
-            r3efresh_token: '...',
-            expires_at: 1735689600
-            user: { 
-                id: 'abc-123-...', 
-                email: 'beastcs146j@gmail.com'
-                user_metadata: { full_name: 'Austin' },
-                //
-            },
-        }
-    },
-    error: null
-}
-So to grab the JWT specifically, we use (await getSession()).data.session.access.token
-Everytime our frontend calls a protected route api to our backend endpoint, we need the JWT to verify user is logged in so we'll use getSession to get it. This is what api.js helper is for.
-Whenever a page loads, a question is "am I logged in?". We'll use getsession to determine here.
-Some pages should only work when logged in such as our my-posts page. We use getSession here
-When the user creates a post, there may be info we want to attach/prefill such as contact info or display name. This prevents an extra backend call
-IMPORTANT: We can add something called onauthstatechange, lets do later, whenever something depends on loginstate so it immediately checks for logged in change
-*/
+// Returns the full Supabase session object including the JWT (access_token).
+// api.js calls this automatically on every request so you rarely need it directly.
 export async function getSession() {
-    return await supabase.auth.getSession();
+  return await supabase.auth.getSession();
+}
+
+// syncUser — tells the backend to create or refresh the user's row in SQLite.
+// Must be called after every login so the SQLite users table stays current.
+// It's safe to call multiple times — the backend does an upsert (no duplicate rows).
+export async function syncUser() {
+  try {
+    return await api.post('/api/auth/sync', {});
+  } catch (err) {
+    console.error('User sync failed:', err);
+  }
+}
+
+// updateProfile — saves display name, location, and/or phone to SQLite via the backend.
+// Returns { profile, error } so callers can check for failures the same way as Supabase calls.
+export async function updateProfile({ full_name, location, phone }) {
+  try {
+    const result = await api.patch('/api/auth/profile', { full_name, location, phone });
+    return { profile: result.profile, error: null };
+  } catch (err) {
+    return { profile: null, error: { message: err.message } };
+  }
+}
+
+// updateUserEmail — asks Supabase to send a confirmation email to the new address.
+// The change only takes effect after the user clicks the confirmation link.
+export async function updateUserEmail(newEmail) {
+  return await supabase.auth.updateUser({ email: newEmail });
+}
+
+// updateUserPassword — updates the password in Supabase Auth.
+// The user must already be logged in (this is not a forgot-password flow).
+export async function updateUserPassword(newPassword) {
+  return await supabase.auth.updateUser({ password: newPassword });
+}
+
+// deleteAccount — removes the user from Supabase Auth and all their data from SQLite.
+// Returns { error } in the same shape as Supabase so profile.js error handling works.
+export async function deleteAccount() {
+  try {
+    await api.delete('/api/auth/account');
+    return { error: null };
+  } catch (err) {
+    return { error: { message: err.message } };
+  }
+}
+
+// getUserListings — fetches all active posts owned by a given user from the backend.
+// Returns { data, error } so the caller can check both cases.
+export async function getUserListings(userId) {
+  try {
+    const data = await api.get(`/api/posts?user_id=${encodeURIComponent(userId)}`);
+    return { data, error: null };
+  } catch (err) {
+    return { data: null, error: { message: err.message } };
+  }
 }

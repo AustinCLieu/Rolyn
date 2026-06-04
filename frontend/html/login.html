@@ -75,7 +75,7 @@
     </main>
 
     <script type="module">
-      import { signInWithEmail, signInWithGoogle } from "../js/auth.js";
+      import { signInWithEmail, signInWithGoogle, syncUser } from "../js/auth.js";
 
       const form = document.getElementById("login-form");
       const errorEl = document.getElementById("auth-error");
@@ -98,10 +98,14 @@
           return;
         }
 
+        // Sync the user into SQLite immediately after login so their profile row
+        // exists before any page tries to read it.
+        await syncUser();
         window.location.href = "index.html";
       });
 
-      document.getElementById("google-login")?.addEventListener("click", () => {
+      // Bug fix: button ID is "google-signin", not "google-login"
+      document.getElementById("google-signin")?.addEventListener("click", () => {
         signInWithGoogle();
       });
     </script>
