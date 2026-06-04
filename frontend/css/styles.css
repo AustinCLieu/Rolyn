@@ -630,11 +630,22 @@ body {
 
 .post-card-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.35rem 1rem;
   margin-bottom: 0.75rem;
   font-size: 0.875rem;
   color: #667085;
+}
+
+.post-card-time {
+  font-size: 0.8125rem;
+  color: #98a2b3;
+}
+
+.posts-load-more {
+  margin-top: 1rem;
 }
 
 .post-card-btn { margin-top: 0.25rem; }

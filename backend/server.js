@@ -1,12 +1,11 @@
+import 'dotenv/config'; // must load before routes that read process.env (e.g. Supabase)
+
 import express    from 'express';
 import cors       from 'cors';
-import dotenv     from 'dotenv';
 import path       from 'path';
 import { fileURLToPath } from 'url';
 import { DatabaseSync }  from 'node:sqlite'; // built into Node 22+, no install needed
 import authRouter from './routes/auth.js';
-
-dotenv.config();
 
 // __dirname isn't available in ES modules, so we derive it from import.meta.url
 const __filename = fileURLToPath(import.meta.url);
@@ -45,23 +44,34 @@ app.use('/api/auth', authRouter);
 
 // ── Posts routes ──
 
-// GET /api/posts — list all active posts, newest first
-// Optional query params: ?category=cleaning&region=manila&term=weekly
+// GET /api/posts — paginated active posts, newest first
+// Query: ?category=&region=&term=&limit=10&offset=0
 app.get('/api/posts', (req, res) => {
   const { category, region, term } = req.query;
 
-  let sql      = 'SELECT * FROM posts WHERE active = 1';
+  let where  = 'WHERE active = 1';
   const params = [];
 
-  if (category) { sql += ' AND category = ?'; params.push(category); }
-  if (region)   { sql += ' AND region = ?';   params.push(region);   }
-  if (term)     { sql += ' AND term = ?';      params.push(term);     }
+  if (category) { where += ' AND category = ?'; params.push(category); }
+  if (region)   { where += ' AND region = ?';   params.push(region);   }
+  if (term)     { where += ' AND term = ?';     params.push(term);     }
 
-  sql += ' ORDER BY created_at DESC';
+  const limit  = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+  const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
-  // db.prepare() compiles the SQL once; .all() runs it and returns every row as an object
-  const posts = db.prepare(sql).all(...params);
-  res.json(posts);
+  const { total } = db
+    .prepare(`SELECT COUNT(*) AS total FROM posts ${where}`)
+    .get(...params);
+
+  const posts = db
+    .prepare(`SELECT * FROM posts ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`)
+    .all(...params, limit, offset);
+
+  res.json({
+    posts,
+    hasMore: offset + posts.length < total,
+    total,
+  });
 });
 
 // GET /api/posts/:id — fetch a single post by id
@@ -127,7 +137,19 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Start server ──
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3001;
+const server = app.listen(PORT, () => {
+  console.log(`Rolyn API on http://localhost:${PORT}`);
+  console.log(`  Health: http://localhost:${PORT}/api/health`);
+  console.log(`  Posts:  http://localhost:${PORT}/api/posts`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(
+      `Port ${PORT} is already in use. Stop the other process or set PORT in backend/.env (e.g. 3002).`,
+    );
+    process.exit(1);
+  }
+  throw err;
 });
