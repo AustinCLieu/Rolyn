@@ -32,6 +32,22 @@ db.exec(`
   )
 `);
 
+// messages — one row per message sent between two users about a specific post.
+// post_id ties the message to the listing it's about so threads are per-listing.
+// sender_id and receiver_id are both Supabase UUIDs (foreign keys to users.id).
+// read tracks whether the receiver has opened the message (0 = unread, 1 = read).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id     INTEGER NOT NULL,
+    sender_id   TEXT    NOT NULL,
+    receiver_id TEXT    NOT NULL,
+    content     TEXT    NOT NULL,
+    read        INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+  )
+`);
+
 // posts — job listings and service/item listings.
 // user_id is a foreign key to users.id but SQLite doesn't enforce FK constraints by default,
 // so we keep it as TEXT and handle integrity in application code.
