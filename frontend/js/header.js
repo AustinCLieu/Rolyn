@@ -34,3 +34,18 @@ async function renderHeader() {
 }
 
 renderHeader();
+
+// Wire up the header search bar on every page.
+// On index.html, index.js already handles the form in-place (filtering posts without
+// navigating away), so we return early and let it take over.
+// On every other page, we navigate to index.html with the query in the URL so the
+// home page can pick it up and run the search there.
+const searchForm = document.querySelector('.header-search');
+if (searchForm) {
+  searchForm.addEventListener('submit', (e) => {
+    if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') return;
+    e.preventDefault();
+    const q = searchForm.querySelector('input[name="q"]')?.value.trim() ?? '';
+    window.location.href = `index.html?q=${encodeURIComponent(q)}`;
+  });
+}

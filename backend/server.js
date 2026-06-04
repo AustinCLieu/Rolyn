@@ -20,7 +20,7 @@ app.use('/api/auth', authRouter);
 // Supports pagination: ?limit=5&offset=0
 // Returns { posts: [...], hasMore: bool } so the frontend knows whether to show "Load more".
 app.get('/api/posts', (req, res) => {
-  const { category, region, term, user_id } = req.query;
+  const { category, region, term, user_id, q } = req.query;
 
   // Cap limit at 100 so a caller can't accidentally pull the entire table in one shot.
   const limit  = Math.min(Math.max(Number(req.query.limit)  || 20, 1), 100);
@@ -33,6 +33,15 @@ app.get('/api/posts', (req, res) => {
   if (region)   { sql += ' AND region = ?';   params.push(region);   }
   if (term)     { sql += ' AND term = ?';      params.push(term);     }
   if (user_id)  { sql += ' AND user_id = ?';   params.push(user_id);  }
+
+  // Full-text search across title and description.
+  // LIKE is case-insensitive for ASCII by default in SQLite.
+  // The % wildcards match any characters before and after the search term,
+  // so searching "cook" matches "Cooking job", "home cook needed", etc.
+  if (q) {
+    sql += ' AND (title LIKE ? OR description LIKE ?)';
+    params.push(`%${q}%`, `%${q}%`);
+  }
 
   sql += ' ORDER BY created_at DESC';
 
