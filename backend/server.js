@@ -17,9 +17,14 @@ app.use('/api/auth', authRouter);
 
 // GET /api/posts — list active posts, newest first.
 // Supports optional filters: ?category=tutoring&region=ncr&term=weekly&user_id=<uuid>
-// user_id is used by the profile page to load "my listings".
+// Supports pagination: ?limit=5&offset=0
+// Returns { posts: [...], hasMore: bool } so the frontend knows whether to show "Load more".
 app.get('/api/posts', (req, res) => {
   const { category, region, term, user_id } = req.query;
+
+  // Cap limit at 100 so a caller can't accidentally pull the entire table in one shot.
+  const limit  = Math.min(Math.max(Number(req.query.limit)  || 20, 1), 100);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
 
   let sql      = 'SELECT * FROM posts WHERE active = 1';
   const params = [];
@@ -31,8 +36,14 @@ app.get('/api/posts', (req, res) => {
 
   sql += ' ORDER BY created_at DESC';
 
-  const posts = db.prepare(sql).all(...params);
-  res.json(posts);
+  // Fetch one extra row beyond the limit. If we get limit+1 rows back, there is at
+  // least one more page. We then slice it off before sending so the client only gets
+  // exactly `limit` rows.
+  const rows    = db.prepare(sql + ' LIMIT ? OFFSET ?').all(...params, limit + 1, offset);
+  const hasMore = rows.length > limit;
+  const posts   = hasMore ? rows.slice(0, limit) : rows;
+
+  res.json({ posts, hasMore });
 });
 
 // GET /api/posts/:id — single post, public

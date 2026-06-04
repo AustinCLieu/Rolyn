@@ -88,10 +88,12 @@ export async function deleteAccount() {
 
 // getUserListings — fetches all active posts owned by a given user from the backend.
 // Returns { data, error } so the caller can check both cases.
+// We extract .posts from the response because GET /api/posts now returns { posts, hasMore }
+// instead of a plain array (the pagination shape fix).
 export async function getUserListings(userId) {
   try {
-    const data = await api.get(`/api/posts?user_id=${encodeURIComponent(userId)}`);
-    return { data, error: null };
+    const result = await api.get(`/api/posts?user_id=${encodeURIComponent(userId)}`);
+    return { data: result.posts, error: null };
   } catch (err) {
     return { data: null, error: { message: err.message } };
   }
