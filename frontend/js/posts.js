@@ -4,12 +4,13 @@ import { BACKEND_URL } from './config.js';
 
 const API = `${BACKEND_URL}/api`;
  
-// Fetch a page of posts: filters { category, region, term, limit, offset }
+// Fetch a page of posts: filters { category, region, term, q, limit, offset }
 export async function fetchPosts(filters = {}) {
   const params = new URLSearchParams();
   if (filters.category) params.set('category', filters.category);
   if (filters.region)   params.set('region',   filters.region);
   if (filters.term)     params.set('term',     filters.term);
+  if (filters.q)        params.set('q',        filters.q);
   if (filters.limit != null)  params.set('limit',  String(filters.limit));
   if (filters.offset != null) params.set('offset', String(filters.offset));
 

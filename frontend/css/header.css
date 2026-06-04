@@ -30,12 +30,33 @@
 }
 
 .header-search {
+  display: flex;
   flex: 1;
+  align-items: center;
+  gap: 0.5rem;
   min-width: 0;
-  max-width: 520px;
+  max-width: 560px;
+}
+
+.header-search-submit {
+  flex-shrink: 0;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: #c41e3a;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.header-search-submit:hover {
+  background: #a01830;
 }
 
 .header-search input {
+  flex: 1;
+  min-width: 0;
   width: 100%;
   padding: 0.625rem 1rem 0.625rem 2.5rem;
   font-size: 0.9375rem;

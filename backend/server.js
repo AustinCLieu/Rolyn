@@ -45,9 +45,10 @@ app.use('/api/auth', authRouter);
 // ── Posts routes ──
 
 // GET /api/posts — paginated active posts, newest first
-// Query: ?category=&region=&term=&limit=10&offset=0
+// Query: ?category=&region=&term=&q=cleaning&limit=10&offset=0
 app.get('/api/posts', (req, res) => {
   const { category, region, term } = req.query;
+  const q = String(req.query.q ?? '').trim();
 
   let where  = 'WHERE active = 1';
   const params = [];
@@ -55,6 +56,11 @@ app.get('/api/posts', (req, res) => {
   if (category) { where += ' AND category = ?'; params.push(category); }
   if (region)   { where += ' AND region = ?';   params.push(region);   }
   if (term)     { where += ' AND term = ?';     params.push(term);     }
+  if (q) {
+    const pattern = `%${q}%`;
+    where += ' AND (title LIKE ? OR description LIKE ? OR author_name LIKE ?)';
+    params.push(pattern, pattern, pattern);
+  }
 
   const limit  = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
   const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);

@@ -24,12 +24,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   let hasMore = false;
   let loadingMore = false;
 
+  const searchForm  = document.getElementById('header-search-form');
+  const searchInput = document.getElementById('search-input');
+  const emptyDefaultHtml = empty?.innerHTML ?? '';
+
   function getFilters() {
     const category = [...document.querySelectorAll('input[name="category"]:checked')]
       .map((el) => el.value)[0] ?? '';
     const region = document.getElementById('locations')?.value ?? '';
     const term   = document.getElementById('times')?.value ?? '';
-    return { category, region, term };
+    const q      = searchInput?.value.trim() ?? '';
+    return { category, region, term, q };
+  }
+
+  function updateEmptyMessage() {
+    const q = searchInput?.value.trim();
+    if (!empty) return;
+    if (q) {
+      empty.innerHTML = `No listings matching &ldquo;${escHtml(q)}&rdquo;. <a href="create.html">Post one!</a>`;
+    } else {
+      empty.innerHTML = emptyDefaultHtml;
+    }
   }
 
   function postCardHtml(p) {
@@ -84,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       hasMore = more;
 
       if (posts.length === 0) {
+        updateEmptyMessage();
         empty.hidden = false;
         return;
       }
@@ -129,6 +145,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   loadMoreBtn?.addEventListener('click', loadNextPage);
+
+  searchForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    loadFirstPage();
+  });
+
+  // Restore ?q= from URL when landing from another page
+  const urlQ = new URLSearchParams(location.search).get('q');
+  if (urlQ && searchInput) searchInput.value = urlQ;
 
   await loadFirstPage();
 
