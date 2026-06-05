@@ -1,6 +1,7 @@
 import { getSession, updateProfile, updateUserEmail, updateUserPassword, deleteAccount, getUserListings } from './auth.js';
-import { api }        from './api.js';
-import { deletePost } from './posts.js';
+import { api }         from './api.js';
+import { deletePost }  from './posts.js';
+import { fetchInbox }  from './messages.js';
 
 const BANNED_CHARS      = /[<>"'`\\\/;=&|% ]/g;
 const BANNED_CHARS_TEST = /[<>"'`\\\/;=&|% ]/;
@@ -75,8 +76,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // ── Load listings ──
+  // ── Load listings and inbox ──
   await loadListings(user.id);
+  await loadInbox();
 
   // ── Save profile (name, location, phone) ──
   // We send all three fields together so the backend can update them in one query.
@@ -299,6 +301,68 @@ async function loadListings(userId) {
       alert('Could not delete listing: ' + err.message);
     }
   });
+}
+
+// ── Inbox loader ──
+// Fetches all conversation threads for the logged-in user and renders them as
+// clickable cards. Also updates the unread badge on the Messages tab button.
+async function loadInbox() {
+  const loadingEl  = document.getElementById('messages-loading');
+  const emptyEl    = document.getElementById('messages-empty');
+  const listEl     = document.getElementById('messages-list');
+  const badgeEl    = document.getElementById('messages-badge');
+
+  try {
+    const threads = await fetchInbox();
+
+    loadingEl.hidden = true;
+
+    if (!threads || threads.length === 0) {
+      emptyEl.hidden = false;
+      return;
+    }
+
+    // Total unread across all threads drives the tab badge.
+    const totalUnread = threads.reduce((sum, t) => sum + (t.unread_count ?? 0), 0);
+    if (totalUnread > 0) {
+      badgeEl.textContent = totalUnread;
+      badgeEl.hidden = false;
+    }
+
+    listEl.innerHTML = threads.map((t) => {
+      const preview  = (t.last_content ?? '').slice(0, 80);
+      const ellipsis = (t.last_content ?? '').length > 80 ? '…' : '';
+      const timeStr  = formatMessageTime(t.last_message_at);
+      const unread   = t.unread_count > 0;
+
+      return `
+        <a href="messages.html?post=${t.post_id}&user=${encodeURIComponent(t.other_user_id)}"
+           class="profile-message-card${unread ? ' profile-message-card--unread' : ''}">
+          <div class="profile-message-info">
+            <p class="profile-message-post">${escHtml(t.post_title)}</p>
+            <p class="profile-message-from">${escHtml(t.other_user_name)}</p>
+            <p class="profile-message-preview">${escHtml(preview)}${ellipsis}</p>
+          </div>
+          <div class="profile-message-meta">
+            <time>${escHtml(timeStr)}</time>
+            ${unread ? `<span class="profile-message-badge">${t.unread_count}</span>` : ''}
+          </div>
+        </a>
+      `;
+    }).join('');
+
+  } catch (err) {
+    loadingEl.hidden = true;
+    emptyEl.textContent = 'Could not load messages.';
+    emptyEl.hidden = false;
+  }
+}
+
+function formatMessageTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T') + 'Z');
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' });
 }
 
 // ── Helpers ──
