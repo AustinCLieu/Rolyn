@@ -157,6 +157,17 @@ app.get('/api/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server on http://localhost:${PORT}`);
+});
+
+// Railway (and other hosts) send SIGTERM when stopping or redeploying the container.
+// Without this handler, Node exits with a non-zero code which Railway logs as a crash.
+// We close the HTTP server first (stops accepting new requests) then close the SQLite
+// connection before exiting cleanly with code 0.
+process.on('SIGTERM', () => {
+  server.close(() => {
+    db.close();
+    process.exit(0);
+  });
 });
