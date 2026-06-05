@@ -132,6 +132,15 @@ app.delete('/api/posts/:id', requireAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/stats — real counts for the homepage banner.
+// total_posts = all active listings ever posted.
+// total_cities = number of distinct regions that have at least one active post.
+app.get('/api/stats', (req, res) => {
+  const { total_posts }  = db.prepare('SELECT COUNT(*) AS total_posts FROM posts WHERE active = 1').get();
+  const { total_cities } = db.prepare('SELECT COUNT(DISTINCT region) AS total_cities FROM posts WHERE active = 1').get();
+  res.json({ total_posts, total_cities });
+});
+
 // ── Health check ──
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

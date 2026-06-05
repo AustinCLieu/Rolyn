@@ -9,6 +9,7 @@ import {
   parsePostDate,
   escHtml,
 } from './posts.js';
+import { BACKEND_URL } from './config.js';
 
 // How many listings each request loads (initial page + each "Load more" click)
 const POSTS_PER_PAGE = 5;
@@ -155,6 +156,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const urlQ = new URLSearchParams(location.search).get('q');
   if (urlQ && searchInput) searchInput.value = urlQ;
 
+  // Load real post and city counts for the welcome banner stats.
+  // Runs in parallel with the first page of listings so neither waits on the other.
+  loadStats();
   await loadFirstPage();
 
   document.querySelectorAll('input[name="category"]').forEach((el) =>
@@ -173,3 +177,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
 });
+
+async function loadStats() {
+  try {
+    const { total_posts, total_cities } = await fetch(`${BACKEND_URL}/api/stats`).then(r => r.json());
+    const postsEl  = document.getElementById('stat-posts');
+    const citiesEl = document.getElementById('stat-cities');
+    if (postsEl)  postsEl.textContent  = total_posts;
+    if (citiesEl) citiesEl.textContent = total_cities;
+  } catch (_) {
+    // If the backend is unreachable just leave the — placeholder showing.
+  }
+}
