@@ -92,6 +92,18 @@ router.get('/', requireAuth, (req, res) => {
   res.json(inbox);
 });
 
+// PATCH /api/messages/:id/read — mark a single message as read.
+// Only the receiver can mark it read — the sender already knows what they wrote.
+// We check ownership before updating so one user can't clear another user's unread flag.
+router.patch('/:id/read', requireAuth, (req, res) => {
+  const message = db.prepare('SELECT * FROM messages WHERE id = ?').get(req.params.id);
+  if (!message) return res.status(404).json({ error: 'Message not found.' });
+  if (message.receiver_id !== req.user.id) return res.status(403).json({ error: 'Only the recipient can mark a message as read.' });
+
+  db.prepare('UPDATE messages SET read = 1 WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
 // GET /api/messages/:postId/:userId — full message thread between the logged-in user
 // and one other user about one specific post, in chronological order (oldest first).
 // Both sides of the conversation (sent and received) are included.
