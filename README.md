@@ -1,6 +1,6 @@
 # Rolyn
 
-A Filipino community marketplace for job postings and services — think Craigslist meets Fiverr, built for Filipinos in the Philippines. Users can post jobs like tutoring or cleaning, offer services, or sell items, and contact each other directly through the site.
+A Filipino community marketplace for job postings and services — think Craigslist meets Fiverr, built for the Philippines. Users can post jobs like tutoring or cleaning, offer services, or sell items, and contact each other directly through the site.
 
 ---
 
