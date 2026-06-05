@@ -15,18 +15,24 @@ app.use('/api/messages', messagesRouter);
 
 // ── Posts routes ──
 
-// GET /api/posts — list active posts, newest first.
+// GET /api/posts — list posts, newest first.
 // Supports optional filters: ?category=tutoring&region=ncr&term=weekly&user_id=<uuid>
 // Supports pagination: ?limit=5&offset=0
+// Supports ?include_inactive=true — only allowed when user_id is also present,
+// so a user can see their own closed listings without exposing everyone else's.
 // Returns { posts: [...], hasMore: bool } so the frontend knows whether to show "Load more".
 app.get('/api/posts', (req, res) => {
   const { category, region, term, user_id, q } = req.query;
+  const includeInactive = req.query.include_inactive === 'true' && !!user_id;
 
   // Cap limit at 100 so a caller can't accidentally pull the entire table in one shot.
   const limit  = Math.min(Math.max(Number(req.query.limit)  || 20, 1), 100);
   const offset = Math.max(Number(req.query.offset) || 0, 0);
 
-  let sql      = 'SELECT * FROM posts WHERE active = 1';
+  // Only filter by active = 1 for public browsing. When a user is viewing their own
+  // listings (user_id present + include_inactive=true), skip the filter so they can
+  // see both active and closed posts.
+  let sql      = includeInactive ? 'SELECT * FROM posts WHERE 1=1' : 'SELECT * FROM posts WHERE active = 1';
   const params = [];
 
   if (category) { sql += ' AND category = ?'; params.push(category); }
