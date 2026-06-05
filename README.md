@@ -13,7 +13,7 @@ A Filipino community marketplace for job postings and services — think Craigsl
 | Database | SQLite via Node's built-in `node:sqlite` (Node 22+) |
 | Auth | Supabase Auth (email/password + Google OAuth) |
 
-Supabase is used **only for authentication** — it issues and verifies JWTs. All application data (users, posts, messages) lives in a local SQLite file.
+Supabase is used **only for authentication** — it issues and verifies JWTs. All application data (users, posts, messages) lives in the local SQLite file.
 
 ---
 
