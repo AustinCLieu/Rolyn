@@ -8,24 +8,78 @@ import {
   timeAgo,
   escHtml,
 } from './posts.js';
- 
+import { getSession }  from './auth.js';
+import { sendMessage } from './messages.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
- 
+
   const id = new URLSearchParams(window.location.search).get('id');
- 
+
   if (!id) {
     document.title = 'Not found — Rolyn';
     document.querySelector('.listing')?.replaceWith(notFound());
     return;
   }
- 
+
   try {
     const p = await fetchPost(id);
     renderListing(p);
   } catch (err) {
     document.querySelector('.listing')?.replaceWith(notFound());
+    return;
   }
- 
+
+  // ── Message form ──
+  // Check login state to decide whether to show the form or the login prompt.
+  // We do this after fetching the post so the page isn't blank while we check auth.
+  const { data } = await getSession();
+  const user = data?.session?.user ?? null;
+
+  const loginPrompt = document.getElementById('message-login-prompt');
+  const messageForm = document.getElementById('message-form');
+
+  if (!user) {
+    // Not logged in — show the login prompt, keep the form hidden.
+    loginPrompt.hidden = false;
+  } else {
+    // Logged in — show the form, keep the login prompt hidden.
+    messageForm.hidden = false;
+
+    const errorEl   = document.getElementById('message-error');
+    const successEl = document.getElementById('message-success');
+    const submitBtn = messageForm.querySelector('button[type="submit"]');
+
+    messageForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = document.getElementById('message-content').value.trim();
+
+      errorEl.hidden   = true;
+      successEl.hidden = true;
+
+      if (!content) {
+        errorEl.textContent = 'Please write a message before sending.';
+        errorEl.hidden = false;
+        return;
+      }
+
+      submitBtn.disabled    = true;
+      submitBtn.textContent = 'Sending…';
+
+      try {
+        await sendMessage(id, content);
+        successEl.textContent = 'Your message has been sent!';
+        successEl.hidden = false;
+        messageForm.reset();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.hidden = false;
+      } finally {
+        submitBtn.disabled    = false;
+        submitBtn.textContent = 'Send Message';
+      }
+    });
+  }
+
 });
  
 function renderListing(p) {

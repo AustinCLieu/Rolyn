@@ -117,33 +117,31 @@
           <p id="message-seller-name">Send a message about this listing.</p>
         </header>
  
-        <form class="message-form" id="message-form" novalidate>
-          <label class="field">
-            <span class="field-label">Your name</span>
-            <input type="text" name="name" placeholder="Juan Dela Cruz" />
-          </label>
- 
-          <label class="field">
-            <span class="field-label">Email</span>
-            <input type="email" name="email" placeholder="you@example.com" />
-          </label>
- 
+        <!-- Shown when the user is not logged in -->
+        <div id="message-login-prompt" hidden>
+          <p class="auth-lead">You need to be logged in to send a message.</p>
+          <a href="login.html" class="btn btn-primary btn-block">Log in to message</a>
+        </div>
+
+        <!-- Shown when the user is logged in -->
+        <form class="message-form" id="message-form" novalidate hidden>
           <label class="field">
             <span class="field-label">Message</span>
             <textarea
+              id="message-content"
               name="message"
               rows="6"
               placeholder="Hi! I'm interested in this listing. Is it still available?"
             ></textarea>
           </label>
- 
+
           <p id="message-error"   class="auth-error"   role="alert"  hidden></p>
           <p id="message-success" class="form-success" role="status" hidden></p>
- 
+
           <button type="submit" class="btn btn-primary btn-block">
             Send Message
           </button>
- 
+
           <p class="form-fineprint">
             By sending, you agree to Rolyn's <a href="guidelines.html">community guidelines</a>.
           </p>
@@ -161,40 +159,6 @@
       </div>
     </aside>
   </main>
- 
-  <script>
-    // Basic message form validation (no backend needed — swap for real handler)
-    document.getElementById('message-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const form    = e.target;
-      const name    = form.name.value.trim();
-      const email   = form.email.value.trim();
-      const message = form.message.value.trim();
-      const errorEl   = document.getElementById('message-error');
-      const successEl = document.getElementById('message-success');
- 
-      errorEl.hidden   = true;
-      successEl.hidden = true;
- 
-      if (!name || !email || !message) {
-        errorEl.textContent = 'Please fill in all fields before sending.';
-        errorEl.hidden = false;
-        return;
-      }
- 
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      if (!emailOk) {
-        errorEl.textContent = 'Please enter a valid email address.';
-        errorEl.hidden = false;
-        return;
-      }
- 
-      // ── Swap the lines below for a real API call when ready ──
-      successEl.textContent = 'Your message has been sent!';
-      successEl.hidden = false;
-      form.reset();
-    });
-  </script>
  
   <script type="module" src="../js/listing.js"></script>
   <script type="module" src="../js/header.js"></script>
