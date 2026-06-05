@@ -1,12 +1,10 @@
+import 'dotenv/config'; // Must be first — loads .env before any other import evaluates
 import express    from 'express';
 import cors       from 'cors';
-import dotenv     from 'dotenv';
 import { db }     from './db.js';                          // shared SQLite instance
 import authRouter     from './routes/auth.js';
 import messagesRouter from './routes/messages.js';
 import { requireAuth } from './middleware/requireAuth.js'; // JWT gate
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
