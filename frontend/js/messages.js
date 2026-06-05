@@ -4,10 +4,12 @@
 import { api } from './api.js';
 
 // Send a message about a listing. Requires the user to be logged in.
-// post_id is the listing being messaged about; the backend looks up the receiver
-// from the post itself so the frontend never needs to know the poster's user id.
-export async function sendMessage(postId, content) {
-  return api.post('/api/messages', { post_id: postId, content });
+// receiverId is optional — only needed when the post owner is replying to someone.
+// When omitted, the backend derives the receiver from the post owner automatically.
+export async function sendMessage(postId, content, receiverId = null) {
+  const body = { post_id: postId, content };
+  if (receiverId) body.receiver_id = receiverId;
+  return api.post('/api/messages', body);
 }
 
 // Fetch the inbox for the logged-in user — one entry per conversation thread.

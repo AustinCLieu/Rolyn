@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     submitBtn.textContent = 'Sending…';
 
     try {
-      const newMessage = await sendMessage(postId, content);
+      const newMessage = await sendMessage(postId, content, otherUserId);
       appendMessage(newMessage, myId);
       replyContent.value = '';
       scrollToBottom();
