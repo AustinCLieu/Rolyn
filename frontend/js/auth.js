@@ -7,9 +7,13 @@ import { api }      from './api.js';
 // Redirect to Google's login page. After sign-in, Google redirects back here,
 // Supabase picks up the OAuth tokens, and the user is logged in.
 export async function signInWithGoogle() {
+  // window.location.origin is "null" when opening HTML as a file:// URL, which
+  // Google OAuth rejects. Fall back to the current href so at minimum Supabase
+  // gets a real URL. The proper fix is to serve the frontend over HTTP.
+  const origin = window.location.origin === 'null' ? window.location.href : window.location.origin;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin },
+    options: { redirectTo: origin },
   });
   if (error) console.error(error);
 }

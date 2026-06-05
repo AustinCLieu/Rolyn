@@ -1,5 +1,6 @@
 import { createPost } from './posts.js';
 import { getSession }  from './auth.js';
+import { api }         from './api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -15,6 +16,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!user) {
     window.location.href = 'login.html';
     return;
+  }
+
+  // Fetch the SQLite profile to get the up-to-date display name.
+  // user.user_metadata.display_name is written at signup and never updated when
+  // the user changes their name on the profile page — the profile page writes to
+  // SQLite instead. Fetching /me here ensures new posts always use the current name.
+  let profile = null;
+  try {
+    const result = await api.get('/api/auth/me');
+    profile = result.profile;
+  } catch (_) {
+    // If the backend is unreachable, fall back to the JWT metadata below.
   }
 
   function showError(msg) {
@@ -48,7 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // author_name is the display name stored in Supabase user_metadata.
     // The backend ignores any user_id sent in the body and uses req.user.id from the JWT instead.
-    const authorName = user.user_metadata?.display_name
+    const authorName = profile?.full_name
+      ?? user.user_metadata?.display_name
       ?? user.email.split('@')[0];
 
     postBtn.disabled    = true;

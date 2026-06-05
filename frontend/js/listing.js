@@ -21,8 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // Declare p outside the try block so the message form section can read p.user_id.
+  let p;
   try {
-    const p = await fetchPost(id);
+    p = await fetchPost(id);
     renderListing(p);
   } catch (err) {
     document.querySelector('.listing')?.replaceWith(notFound());
@@ -30,19 +32,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── Message form ──
-  // Check login state to decide whether to show the form or the login prompt.
-  // We do this after fetching the post so the page isn't blank while we check auth.
+  // Three states: not logged in, logged in and owns the listing, logged in and doesn't own it.
   const { data } = await getSession();
   const user = data?.session?.user ?? null;
 
+  const ownerNotice = document.getElementById('message-owner-notice');
   const loginPrompt = document.getElementById('message-login-prompt');
   const messageForm = document.getElementById('message-form');
 
   if (!user) {
-    // Not logged in — show the login prompt, keep the form hidden.
     loginPrompt.hidden = false;
+  } else if (p.user_id === user.id) {
+    // The logged-in user owns this listing — show the owner notice instead of the form.
+    ownerNotice.hidden = false;
   } else {
-    // Logged in — show the form, keep the login prompt hidden.
+    // Logged in and not the owner — show the message form.
     messageForm.hidden = false;
 
     const errorEl   = document.getElementById('message-error');
