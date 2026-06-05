@@ -274,9 +274,9 @@ async function loadListings(userId) {
       <p class="profile-listing-body">${escHtml(l.description)}</p>
       <div class="profile-listing-footer">
         <div class="profile-listing-actions">
-          <span class="profile-listing-badge profile-listing-badge--active" id="badge-${l.id}">Active</span>
+          <span class="profile-listing-badge ${l.active ? 'profile-listing-badge--active' : 'profile-listing-badge--closed'}" id="badge-${l.id}">${l.active ? 'Active' : 'Closed'}</span>
           <a href="listing.html?id=${l.id}" class="btn btn-ghost">View</a>
-          <button type="button" class="btn btn-ghost" data-close-id="${l.id}">Close</button>
+          <button type="button" class="btn btn-ghost" data-close-id="${l.id}" ${l.active ? '' : 'disabled'}>Close</button>
           <button type="button" class="btn btn-ghost" data-delete-id="${l.id}">Delete</button>
         </div>
       </div>
