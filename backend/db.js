@@ -12,7 +12,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-export const db = new DatabaseSync(path.join(__dirname, 'rolyn.db'));
+// In production (Railway), the database lives on a persistent volume mounted at
+// /app/data so it survives server restarts. Locally it stays next to this file.
+// DATABASE_PATH is set as an environment variable on Railway pointing to /app/data/rolyn.db.
+const dbPath = process.env.DATABASE_PATH ?? path.join(__dirname, 'rolyn.db');
+
+export const db = new DatabaseSync(dbPath);
 
 // ── Schema ──
 // IF NOT EXISTS makes every CREATE safe to run on every startup.
