@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Messages — Rolyn</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/messages.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="header-logo" href="index.html" aria-label="Rolyn home">
+          <img src="../media/rolyn-logo.png" alt="Rolyn" />
+        </a>
+        <form class="header-search" role="search">
+          <input type="search" name="q" placeholder="Search jobs, services..." aria-label="Search" />
+        </form>
+        <nav class="header-actions" aria-label="Account" id="header-actions"></nav>
+      </div>
+    </header>
+
+    <main class="thread-page">
+
+      <!-- Back link + conversation context -->
+      <div class="thread-header">
+        <a href="profile.html" class="btn btn-ghost thread-back">← Back to profile</a>
+        <div class="thread-header-info">
+          <h1 class="thread-post-title" id="thread-post-title">Loading…</h1>
+          <p class="thread-other-user" id="thread-other-user"></p>
+        </div>
+      </div>
+
+      <!-- Scrollable message bubbles -->
+      <div class="thread-messages" id="thread-messages">
+        <p id="thread-loading" class="thread-status">Loading messages…</p>
+      </div>
+
+      <!-- Reply form pinned to the bottom -->
+      <div class="thread-reply">
+        <form id="reply-form" novalidate>
+          <textarea
+            id="reply-content"
+            class="thread-reply-input"
+            placeholder="Write a reply…"
+            rows="3"
+          ></textarea>
+          <p id="reply-error" class="auth-error" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+      </div>
+
+    </main>
+
+    <script type="module" src="../js/thread.js"></script>
+    <script type="module" src="../js/header.js"></script>
+  </body>
+</html>

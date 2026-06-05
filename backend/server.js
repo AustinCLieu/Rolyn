@@ -57,6 +57,15 @@ app.get('/api/posts', (req, res) => {
   res.json({ posts, hasMore });
 });
 
+// GET /api/users/:id — public profile (display name only).
+// Used by the thread page to show who you're talking to.
+// We only expose the display name — never email, phone, or location.
+app.get('/api/users/:id', (req, res) => {
+  const user = db.prepare('SELECT id, full_name, email FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+  res.json({ id: user.id, name: user.full_name ?? user.email.split('@')[0] });
+});
+
 // GET /api/posts/:id — single post, public
 app.get('/api/posts/:id', (req, res) => {
   const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
