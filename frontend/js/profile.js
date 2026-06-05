@@ -1,6 +1,6 @@
 import { getSession, updateProfile, updateUserEmail, updateUserPassword, deleteAccount, getUserListings } from './auth.js';
 import { api }         from './api.js';
-import { deletePost }  from './posts.js';
+import { deletePost, closePost } from './posts.js';
 import { fetchInbox }  from './messages.js';
 
 const BANNED_CHARS      = /[<>"'`\\\/;=&|% ]/g;
@@ -283,14 +283,40 @@ async function loadListings(userId) {
     </div>
   `).join('');
 
-  // Single delegated listener on the container catches clicks on any delete button.
+  // Single delegated listener handles both Close and Delete clicks.
+  // We check for close first, then delete, so each branch is self-contained.
   listingsEl.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-delete-id]');
-    if (!btn) return;
+
+    // ── Close ──
+    const closeBtn = e.target.closest('[data-close-id]');
+    if (closeBtn) {
+      if (!confirm('Mark this listing as closed? It will no longer appear in search results.')) return;
+
+      const id = closeBtn.dataset.closeId;
+      try {
+        await closePost(id);
+        // Swap the badge from Active → Closed so the user sees the change immediately.
+        const badge = document.getElementById(`badge-${id}`);
+        if (badge) {
+          badge.textContent = 'Closed';
+          badge.classList.replace('profile-listing-badge--active', 'profile-listing-badge--closed');
+        }
+        // Disable the Close button so it can't be clicked again on the same card.
+        closeBtn.disabled = true;
+        closeBtn.textContent = 'Closed';
+      } catch (err) {
+        alert('Could not close listing: ' + err.message);
+      }
+      return;
+    }
+
+    // ── Delete ──
+    const deleteBtn = e.target.closest('[data-delete-id]');
+    if (!deleteBtn) return;
 
     if (!confirm('Are you sure you want to delete this listing?')) return;
 
-    const id = btn.dataset.deleteId;
+    const id = deleteBtn.dataset.deleteId;
     try {
       await deletePost(id);
       const card = listingsEl.querySelector(`[data-listing-id="${id}"]`);
