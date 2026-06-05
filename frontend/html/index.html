@@ -61,41 +61,35 @@
         <div class="sidebar-card">
           <h2 class="sidebar-heading">Filters</h2>
 
-          <fieldset class="filter-group jobtypefilter">
-            <legend>Job type</legend>
-            <ul class="filter-checklist">
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox" name="category" value="cleaning" />
-                  <span>Cleaning</span>
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox" name="category" value="cooking" />
-                  <span>Cooking</span>
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox" name="category" value="service" />
-                  <span>Service</span>
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox" name="category" value="kidcare" />
-                  <span>Kid care</span>
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox" name="category" value="transportation" />
-                  <span>Transportation</span>
-                </label>
-              </li>
-            </ul>
-          </fieldset>
+          <div class="filter-group jobtypefilter">
+            <label class="filter-label" for="category">Category</label>
+            <select class="filter-select" id="category" name="category">
+              <option value="">All categories</option>
+              <optgroup label="Services">
+                <option value="cleaning">Cleaning</option>
+                <option value="cooking">Cooking</option>
+                <option value="kidcare">Kid Care</option>
+                <option value="transportation">Transportation</option>
+                <option value="tutoring">Tutoring / Education</option>
+                <option value="beauty">Beauty &amp; Wellness</option>
+                <option value="repairs">Repairs &amp; Maintenance</option>
+                <option value="construction">Construction &amp; Labor</option>
+                <option value="errands">Errands &amp; Delivery</option>
+                <option value="events">Events &amp; Entertainment</option>
+                <option value="caregiving">Caregiving</option>
+                <option value="service">General Service</option>
+              </optgroup>
+              <optgroup label="Items for Sale">
+                <option value="electronics">Electronics</option>
+                <option value="furniture">Furniture &amp; Home</option>
+                <option value="clothing">Clothing &amp; Accessories</option>
+                <option value="vehicles">Vehicles &amp; Parts</option>
+                <option value="food">Food &amp; Produce</option>
+                <option value="instruments">Instruments &amp; Hobbies</option>
+                <option value="items">Other Items</option>
+              </optgroup>
+            </select>
+          </div>
 
           <div class="filter-group locationfilter">
             <label class="filter-label" for="locations">Location</label>

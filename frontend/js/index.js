@@ -30,11 +30,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const emptyDefaultHtml = empty?.innerHTML ?? '';
 
   function getFilters() {
-    const category = [...document.querySelectorAll('input[name="category"]:checked')]
-      .map((el) => el.value)[0] ?? '';
-    const region = document.getElementById('locations')?.value ?? '';
-    const term   = document.getElementById('times')?.value ?? '';
-    const q      = searchInput?.value.trim() ?? '';
+    const category = document.getElementById('category')?.value ?? '';
+    const region   = document.getElementById('locations')?.value ?? '';
+    const term     = document.getElementById('times')?.value ?? '';
+    const q        = searchInput?.value.trim() ?? '';
     return { category, region, term, q };
   }
 
@@ -161,16 +160,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadStats();
   await loadFirstPage();
 
-  document.querySelectorAll('input[name="category"]').forEach((el) =>
-    el.addEventListener('change', loadFirstPage),
-  );
+  document.getElementById('category')?.addEventListener('change', loadFirstPage);
   document.getElementById('locations')?.addEventListener('change', loadFirstPage);
   document.getElementById('times')?.addEventListener('change', loadFirstPage);
 
   document.querySelector('.sidebar-clear')?.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar input[type=checkbox]').forEach((el) => {
-      el.checked = false;
-    });
+    document.getElementById('category').value  = '';
     document.getElementById('locations').value = '';
     document.getElementById('times').value     = '';
     loadFirstPage();

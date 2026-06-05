@@ -45,11 +45,27 @@ export async function deletePost(id) {
 // ── Formatting helpers shared across pages ──
 
 export const CATEGORY_LABELS = {
+  // Services
   cleaning:       'Cleaning',
   cooking:        'Cooking',
-  service:        'Service',
-  kidcare:        'Kid care',
+  kidcare:        'Kid Care',
   transportation: 'Transportation',
+  tutoring:       'Tutoring / Education',
+  beauty:         'Beauty & Wellness',
+  repairs:        'Repairs & Maintenance',
+  construction:   'Construction & Labor',
+  errands:        'Errands & Delivery',
+  events:         'Events & Entertainment',
+  caregiving:     'Caregiving',
+  service:        'General Service',
+  // Items for sale
+  electronics:    'Electronics',
+  furniture:      'Furniture & Home',
+  clothing:       'Clothing & Accessories',
+  vehicles:       'Vehicles & Parts',
+  food:           'Food & Produce',
+  instruments:    'Instruments & Hobbies',
+  items:          'Other Items',
 };
 
 export const REGION_LABELS = {
