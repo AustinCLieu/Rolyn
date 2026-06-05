@@ -1,6 +1,6 @@
 import { getSession, updateProfile, updateUserEmail, updateUserPassword, deleteAccount, getUserListings } from './auth.js';
 import { api }         from './api.js';
-import { deletePost, closePost } from './posts.js';
+import { deletePost, closePost, openPost } from './posts.js';
 import { fetchInbox }  from './messages.js';
 
 const BANNED_CHARS      = /[<>"'`\\\/;=&|% ]/g;
@@ -276,16 +276,39 @@ async function loadListings(userId) {
         <div class="profile-listing-actions">
           <span class="profile-listing-badge ${l.active ? 'profile-listing-badge--active' : 'profile-listing-badge--closed'}" id="badge-${l.id}">${l.active ? 'Active' : 'Closed'}</span>
           <a href="listing.html?id=${l.id}" class="btn btn-ghost">View</a>
-          <button type="button" class="btn btn-ghost" data-close-id="${l.id}" ${l.active ? '' : 'disabled'}>Close</button>
+          ${l.active
+            ? `<button type="button" class="btn btn-ghost" data-close-id="${l.id}">Close</button>`
+            : `<button type="button" class="btn btn-ghost" data-open-id="${l.id}">Open</button>`
+          }
           <button type="button" class="btn btn-ghost" data-delete-id="${l.id}">Delete</button>
         </div>
       </div>
     </div>
   `).join('');
 
-  // Single delegated listener handles both Close and Delete clicks.
-  // We check for close first, then delete, so each branch is self-contained.
+  // Single delegated listener handles Open, Close, and Delete clicks.
   listingsEl.addEventListener('click', async (e) => {
+
+    // ── Open ──
+    const openBtn = e.target.closest('[data-open-id]');
+    if (openBtn) {
+      const id = openBtn.dataset.openId;
+      try {
+        await openPost(id);
+        const badge = document.getElementById(`badge-${id}`);
+        if (badge) {
+          badge.textContent = 'Active';
+          badge.classList.replace('profile-listing-badge--closed', 'profile-listing-badge--active');
+        }
+        // Swap Open button back to Close button
+        openBtn.dataset.closeId = id;
+        delete openBtn.dataset.openId;
+        openBtn.textContent = 'Close';
+      } catch (err) {
+        alert('Could not reopen listing: ' + err.message);
+      }
+      return;
+    }
 
     // ── Close ──
     const closeBtn = e.target.closest('[data-close-id]');

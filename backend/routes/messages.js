@@ -24,9 +24,9 @@ router.post('/', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'Message must be 2000 characters or fewer.' });
   }
 
-  const post = db.prepare('SELECT * FROM posts WHERE id = ? AND active = 1').get(post_id);
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(post_id);
   if (!post) {
-    return res.status(404).json({ error: 'Listing not found or is no longer active.' });
+    return res.status(404).json({ error: 'Listing not found.' });
   }
 
   let receiver_id;

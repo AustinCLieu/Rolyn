@@ -74,7 +74,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     submitBtn.textContent = 'Sending…';
 
     try {
-      const newMessage = await sendMessage(postId, content, otherUserId);
+      // Only pass receiver_id when the current user owns the post — the backend
+      // requires it to route the reply to the right person. Non-owners don't need
+      // it because the backend derives the receiver from the post owner automatically.
+      const isOwner = post?.user_id === myId;
+      const newMessage = await sendMessage(postId, content, isOwner ? otherUserId : null);
       appendMessage(newMessage, myId);
       replyContent.value = '';
       scrollToBottom();

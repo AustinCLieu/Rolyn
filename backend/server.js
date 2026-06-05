@@ -112,6 +112,16 @@ app.post('/api/posts', requireAuth, (req, res) => {
   res.status(201).json(post);
 });
 
+// PATCH /api/posts/:id/open — reactivate a closed post. Requires login and ownership.
+app.patch('/api/posts/:id/open', requireAuth, (req, res) => {
+  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+  if (post.user_id !== req.user.id) return res.status(403).json({ error: 'You do not own this post.' });
+
+  db.prepare('UPDATE posts SET active = 1 WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
 // PATCH /api/posts/:id/close — mark a post inactive. Requires login and ownership.
 app.patch('/api/posts/:id/close', requireAuth, (req, res) => {
   const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(req.params.id);

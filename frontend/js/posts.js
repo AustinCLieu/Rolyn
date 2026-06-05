@@ -37,6 +37,11 @@ export async function closePost(id) {
   return api.patch(`/api/posts/${id}/close`, {});
 }
 
+// Reactivate a closed post. Requires login and ownership.
+export async function openPost(id) {
+  return api.patch(`/api/posts/${id}/open`, {});
+}
+
 // Permanently delete a post. Requires login and ownership.
 export async function deletePost(id) {
   return api.delete(`/api/posts/${id}`);
