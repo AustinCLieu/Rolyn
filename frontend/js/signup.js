@@ -1,6 +1,14 @@
-import { signUp, signInWithGoogle } from './auth.js';
- 
-document.addEventListener("DOMContentLoaded", () => {
+import { signUp, signInWithGoogle, getSession, syncUser } from './auth.js';
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // If the user just came back from Google OAuth they already have a session.
+    // Sync them into SQLite and send them to the home page.
+    const { data } = await getSession();
+    if (data?.session) {
+        await syncUser();
+        window.location.href = 'index.html';
+        return;
+    }
     /* ── DOM refs ── */
     const form = document.getElementById("signup-form");
     const errorEl = document.getElementById("auth-error");

@@ -10,10 +10,13 @@ export async function signInWithGoogle() {
   // window.location.origin is "null" when opening HTML as a file:// URL, which
   // Google OAuth rejects. Fall back to the current href so at minimum Supabase
   // gets a real URL. The proper fix is to serve the frontend over HTTP.
-  const origin = window.location.origin === 'null' ? window.location.href : window.location.origin;
+  // Redirect back to the current page after Google OAuth completes.
+  // Using window.location.href instead of origin so the full path is preserved
+  // (e.g. http://127.0.0.1:5500/frontend/html/index.html, not just the root).
+  const redirectTo = window.location.href.split('#')[0].split('?')[0];
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: origin },
+    options: { redirectTo },
   });
   if (error) console.error(error);
 }
